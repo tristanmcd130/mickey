@@ -1,0 +1,14 @@
+globals
+	x: int
+	y: bool ptr ptr
+begin
+	x = 5
+end
+
+fun main(): int
+locals
+	z: int
+begin
+	z = 5
+	return z
+end
