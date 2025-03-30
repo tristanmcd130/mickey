@@ -3,7 +3,7 @@ let label = ref 0
 let rec compile stmt ctx =
   match stmt with
   | Stmt.SBlock b -> String.concat "\n" (List.map (fun x -> compile x ctx) b)
-  | SGlobals (gs, b) -> compile b ctx ^ "\ncall main:\nhalt\ngetlocal:\naddd lp:\npshi\npop\nretn\nsetlocal:\naddd lp:\ninsp 1\npopi\ndesp 2\nretn\nfp: 0\nlp: 0\ntmp: 0\n" ^ (List.map fst gs |> List.map (fun x -> x ^ ": 0") |> String.concat "\n") 
+  | SGlobals (gs, b) -> compile b ctx ^ "\n" ^ (List.map fst gs |> List.map (fun x -> x ^ ": 0") |> String.concat "\n") 
   | SFun (n, ps, _, ls, b) -> n ^ ":\nlodd fp:\npush\nlodd lp:\npush\nswap\nstod fp:\nswap\ndesp " ^ (List.length ls |> string_of_int) ^ "\nswap\nstod lp:\nswap\n" ^ compile b (List.mapi (fun i (n, _) -> (n, i + List.length ls + 3)) ps @ List.mapi (fun i (n, _) -> (n, i)) ls @ ctx) ^ "\nhalt"
   | SAssign (n, v) ->
     compile_exp v ctx ^ "\n" ^ (match List.assoc_opt n ctx with
@@ -20,7 +20,7 @@ let rec compile stmt ctx =
     let done_label = "while" ^ (!label + 1 |> string_of_int) ^ ":" in
     label := !label + 2;
     do_label ^ "\n" ^ compile_exp c ctx ^ "\njzer " ^ done_label ^ "\n" ^ compile b ctx ^ "\njump " ^ do_label ^ "\n" ^ done_label
-  | SReturn e -> compile_exp e ctx ^ "\nstod tmp:\nlodd fp:\nswap\npop\nstod lp:\npop\nstod fp:\nlodd tmp:\nretn"
+  | SReturn e -> (match e with Some v -> compile_exp v ctx | None -> "") ^ "\nstod tmp:\nlodd fp:\nswap\npop\nstod lp:\npop\nstod fp:\nlodd tmp:\nretn"
 and compile_exp exp ctx =
   match exp with
   | EBool true -> "loco 1"

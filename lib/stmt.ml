@@ -6,4 +6,4 @@ type t =
 | SCall of string * Exp.t list
 | SIf of Exp.t * t * t
 | SWhile of Exp.t * t
-| SReturn of Exp.t
+| SReturn of Exp.t option

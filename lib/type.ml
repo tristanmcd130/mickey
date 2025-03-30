@@ -4,6 +4,7 @@ type t =
 | TInt
 | TPtr of t
 | TFun of t list * t
+| TNoReturn
 
 let rec to_string = function
 | TVoid -> "void"
@@ -11,3 +12,4 @@ let rec to_string = function
 | TInt -> "int"
 | TPtr t -> to_string t ^ " ptr"
 | TFun (ps, r) -> "(" ^ (List.map to_string ps |> String.concat ", ") ^ ") -> " ^ to_string r
+| TNoReturn -> "nothing"

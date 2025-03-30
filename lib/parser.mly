@@ -67,7 +67,7 @@ stmt:
 	| n = ID; LPAREN; a = separated_list(COMMA, exp); RPAREN	{SCall (n, a)}
 	| IF; c = exp; THEN; t = block; ELSE; e = block; END		{SIf (c, t, e)}
 	| WHILE; c = exp; DO; b = block; END						{SWhile (c, b)}
-	| RETURN; e = exp											{Stmt.SReturn e}
+	| RETURN; e = exp?											{Stmt.SReturn e}
 
 exp:
 	| b = BOOL													{EBool b}
@@ -80,19 +80,19 @@ exp:
 
 %inline unary_op:
 	| NOT	{"not"}
-	| MINUS	{"u-"}
+	| MINUS	{"neg"}
 
 %inline binary_op:
 	| OR		{"or"}
 	| AND		{"and"}
-	| LT		{"<"}
-	| LE		{"<="}
-	| EQ		{"=="}
-	| NE		{"!="}
-	| GT		{">"}
-	| GE		{">="}
-	| PLUS		{"+"}
-	| MINUS		{"-"}
-	| STAR		{"*"}
-	| SLASH		{"/"}
-	| PERCENT	{"%"}
+	| LT		{"lt"}
+	| LE		{"le"}
+	| EQ		{"eq"}
+	| NE		{"ne"}
+	| GT		{"gt"}
+	| GE		{"ge"}
+	| PLUS		{"add"}
+	| MINUS		{"sub"}
+	| STAR		{"mul"}
+	| SLASH		{"div"}
+	| PERCENT	{"mod"}
