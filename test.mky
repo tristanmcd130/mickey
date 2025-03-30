@@ -1,14 +1,23 @@
 globals
-	x: int
-	y: bool ptr ptr
+	y: int
 begin
-	x = 5
+	y = 2
+end
+
+fun factorial(x: int): int
+locals
+begin
+	if false then
+		return 1
+	else
+		return x
+	end
 end
 
 fun main(): int
 locals
 	z: int
 begin
-	z = 5
-	return z
+	z = 69
+	return factorial(y)
 end

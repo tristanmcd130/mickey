@@ -8,7 +8,7 @@ let rec process_defs = function
 let rec type_check stmt type_env =
   match stmt with
   | Stmt.SBlock [] -> Type.TVoid
-  | SBlock (SReturn e :: _) -> type_of e type_env
+  | SBlock [s] -> type_check s type_env
   | SBlock (s :: ss) ->
     type_check s type_env |> ignore;
     type_check (SBlock ss) type_env
@@ -35,7 +35,7 @@ let rec type_check stmt type_env =
       (if ps = List.map (fun x -> type_of x type_env) a then
         TVoid
       else
-        failwith ("Function " ^ n ^ " has type " ^ Type.to_string t ^ ", but its arguments have types " ^ (List.map (fun x -> type_of x type_env)  a |> List.map Type.to_string |> String.concat ", ")))
+        failwith ("Function " ^ n ^ " has type " ^ Type.to_string t ^ ", but its arguments have types " ^ (List.map (fun x -> type_of x type_env) a |> List.map Type.to_string |> String.concat ", ")))
     | Some _ -> failwith (n ^ " is not a function, it cannot be called")
     | None -> failwith ("Function " ^ n ^ " not defined"))
   | SIf (c, t, e) ->
@@ -64,9 +64,9 @@ and type_of exp type_env =
   | ECall (n, a) ->
     (match List.assoc_opt n type_env with
     | Some (TFun (ps, r) as t) ->
-      (if ps = List.map (fun x -> type_of x type_env)  a then
-        TVoid
+      (if ps = List.map (fun x -> type_of x type_env) a then
+        r
       else
-        failwith ("Function " ^ n ^ " has type " ^ Type.to_string t ^ ", but its arguments have types " ^ (List.map (fun x -> type_of x type_env)  a |> List.map Type.to_string |> String.concat ", ")))
+        failwith ("Function " ^ n ^ " has type " ^ Type.to_string t ^ ", but its arguments have types " ^ (List.map (fun x -> type_of x type_env) a |> List.map Type.to_string |> String.concat ", ")))
     | Some _ -> failwith (n ^ " is not a function, it cannot be called")
     | None -> failwith ("Function " ^ n ^ " not defined"))
