@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if (( $# != 1 ))
+then
+	>&2 echo "Usage: $0 [file]"
+	exit 1
+fi
+
+dune exec mickey --profile release $1 &&
+~/Documents/Coding/mic1/CompArch/HW4/masm < ${1%.*}.asm > ${1%.*}.obj &&
+# rm ${1%.*}.asm &&
+~/Documents/Coding/mic1/CompArch/mic1/mic1 ~/Documents/Coding/mic1/CompArch/HW4/promfile_rmd.dat ${1%.*}.obj 0 2048

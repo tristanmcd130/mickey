@@ -20,8 +20,19 @@ let () =
         ("mul", TFun ([TInt; TInt], TInt));
         ("div", TFun ([TInt; TInt], TInt));
         ("mod", TFun ([TInt; TInt], TInt));
+        ("alloc", TFun ([TInt], TPtr TVoid));
+        ("free", TFun ([TPtr TVoid], TVoid));
       ]) |> ignore;
-      Compile.compile ast [] |> print_endline
+      let (global_init, globals, code) = Compile.compile ast [] in
+      let output = open_out ((f |> String.split_on_char '.' |> List.hd) ^ ".asm") in
+      Printf.fprintf output "%s" global_init;
+      Printf.fprintf output "%s\n" (In_channel.open_text "prelude.asm" |> In_channel.input_all);
+      Printf.fprintf output "%s" globals;
+      Printf.fprintf output "%s" code;
+      Printf.fprintf output "\nheap:\n1\n0\n0";
+      close_out output
     with
-    | e -> print_endline ("Error: " ^ Printexc.to_string e))
+    | e ->
+      print_endline ("Error: " ^ Printexc.to_string e);
+      exit 1)
   |_ -> print_endline ("Usage: " ^ Sys.argv.(0) ^ " [file]")

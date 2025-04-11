@@ -1,1 +1,1 @@
-val compile: Stmt.t -> (string * int) list -> string
+val compile: Stmt.t -> (string * int) list -> string * string * string
