@@ -1,0 +1,8 @@
+(ocamllex lexer)
+
+(menhir
+ (modules parser))
+
+(library
+ (name mickey)
+ (modules lexer parser type ast scope type_check program compile))

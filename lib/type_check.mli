@@ -1,0 +1,1 @@
+val type_check: Type.t Scope.t -> Ast.t -> unit
