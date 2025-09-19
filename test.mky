@@ -1,0 +1,11 @@
+fun main(): int =
+	local x: int in
+	{
+		x = 5;
+		# break(x);
+		x = x + 1 + x;
+		# break(x);
+		x = x + 1 + x;
+		# break(x);
+		x
+	}

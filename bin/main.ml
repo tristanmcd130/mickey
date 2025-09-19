@@ -2,6 +2,7 @@ open Mickey
 
 let () = 
   let ast = stdin |> Lexing.from_channel |> Parser.program Lexer.read in
-  let scope = Scope.create None [] in
-  Type_check.type_check scope ast;
-  Compile.compile ast |> print_endline
+  let type_env = Env.create None [] in
+  Type_check.type_check type_env ast;
+  let env = Env.create None [] in
+  Compile.compile env ast |> print_string

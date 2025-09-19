@@ -1,1 +1,1 @@
-val type_check: Type.t Scope.t -> Ast.t -> unit
+val type_check: Type.t Env.t -> Stmt.t -> unit
