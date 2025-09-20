@@ -8,6 +8,7 @@ let rec type_check type_env = function
     failwith "main function must have type () -> int");
   Env.add type_env n (Type.TArrow (List.map snd ps, t));
   assert_type (Env.create (Some type_env) (ps @ ls)) b t
+| SVar (n, t) -> Env.add type_env n t
 and type_of type_env = function
 | Exp.EInt i -> Type.TInt
 | EBlock [] -> TUnit
@@ -25,15 +26,34 @@ and type_of type_env = function
 | EUnary (UNeg, r) ->
   assert_type type_env r TInt;
   TInt
-| EBinary (l, BAdd, r) | EBinary (l, BSub, r) ->
+| EUnary (UNot, r) ->
+  assert_type type_env r TBool;
+  TBool
+| EBinary (l, BAdd, r) | EBinary (l, BSub, r) | EBinary (l, BMul, r) | EBinary (l, BDiv, r) ->
   assert_type type_env l TInt;
   assert_type type_env r TInt;
   TInt
+| EBinary (l, BEQ, r) | EBinary (l, BNE, r) ->
+  assert_type type_env l (type_of type_env r);
+  TBool
+| EBinary (l, BGT, r) | EBinary (l, BLT, r) | EBinary (l, BGE, r) | EBinary (l, BLE, r) ->
+  assert_type type_env l TInt;
+  assert_type type_env r TInt;
+  TBool
+| EBinary (l, BAnd, r) | EBinary (l, BOr, r) ->
+  assert_type type_env l TBool;
+  assert_type type_env r TBool;
+  TBool
 | ESet (n, v) ->
   assert_type type_env v (Env.find type_env n);
   TUnit
 | EBreak e -> type_of type_env e
-| EBool b -> TBool
+| EBool _ -> TBool
+| EIf (c, t, e) ->
+  assert_type type_env c TBool;
+  let e_type = type_of type_env e in
+  assert_type type_env t e_type;
+  e_type
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then

@@ -8,8 +8,20 @@ type t =
 | ESet of string * t
 | EBreak of t
 | EBool of bool
+| EIf of t * t * t
 and unary_op =
 | UNeg
+| UNot
 and binary_op =
 | BAdd
 | BSub
+| BMul
+| BDiv
+| BEQ
+| BNE
+| BGT
+| BLT
+| BGE
+| BLE
+| BAnd
+| BOr
