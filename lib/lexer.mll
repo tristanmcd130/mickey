@@ -5,7 +5,7 @@
 
 let ws = [' ' '\t']+
 let id = ['a'-'z' 'A'-'Z'] ['a'-'z' 'A'-'Z' '0'-'9']*
-let int = '-'? ['0'-'9']+
+let int = ['0'-'9']+
 
 rule read = parse
 | ws		{read lexbuf}
@@ -44,6 +44,8 @@ rule read = parse
 | "or"		{OR}
 | "not"		{NOT}
 | "var"		{VAR}
+| "while"	{WHILE}
+| "do"		{DO}
 | int		{INT (lexeme lexbuf |> int_of_string)}
 | id		{ID (lexeme lexbuf)}
 | '#'		{skip_comment lexbuf}

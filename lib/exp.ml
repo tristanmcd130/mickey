@@ -9,6 +9,7 @@ type t =
 | EBreak of t
 | EBool of bool
 | EIf of t * t * t
+| EWhile of t * t
 and unary_op =
 | UNeg
 | UNot

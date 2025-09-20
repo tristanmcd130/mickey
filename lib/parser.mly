@@ -31,6 +31,8 @@
 %token OR
 %token NOT
 %token VAR
+%token WHILE
+%token DO
 %token <bool> BOOL
 %token <int> INT
 %token <string> ID
@@ -72,7 +74,8 @@ exp:
 | l = exp; o = binary_op; r = exp							{EBinary (l, o, r)}
 | n = ID; EQUAL; v = exp									{ESet (n, v)}
 | b = BOOL													{EBool b}
-| IF; c = exp; THEN; t = exp; ELSE; e = exp					{Exp.EIf (c, t, e)}
+| IF; c = exp; THEN; t = exp; ELSE; e = exp					{EIf (c, t, e)}
+| WHILE; c = exp; DO; b = exp								{Exp.EWhile (c, b)}
 | LPAREN; e = exp; RPAREN									{e}
 
 %inline unary_op:

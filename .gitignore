@@ -1,1 +1,6 @@
 _build
+CompArch
+*.asm
+!prelude.asm
+*.obj
+*.exe

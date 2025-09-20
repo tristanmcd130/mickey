@@ -21,7 +21,7 @@ temp 1
 temp 2
 temp 3      <- sp
 *)
-| SVar (n, t) -> n ^ ": 0\n\n"
+| SVar (n, _) -> n ^ ": 0\n\n"
 and compile_exp env = function
 | EInt i -> Printf.sprintf "loco %d\n" i
 | EBlock [] -> "loco 0\n"
@@ -51,10 +51,14 @@ and compile_exp env = function
 | ESet (n, v) -> compile_exp env v ^ (match Env.find_opt env n with
   | None -> Printf.sprintf "stod %s:\n" n
   | Some i -> Printf.sprintf "push\nloco %d\ncall setlocal:\ninsp 1\n" i)
-| EBreak e -> compile_exp env e ^ "halt\t; BREAK\n"
+| EBreak e -> compile_exp env e ^ "halt ; BREAK\n"
 | EBool true -> "loco 1\n"
 | EBool false -> "loco 0\n"
 | EIf (c, t, e) ->
   let else_label = new_label () in
   let end_label = new_label () in 
-  compile_exp env c ^ Printf.sprintf "jzer %s\n%sjump %s\n%s\n%s%s\n" else_label (compile_exp env t) end_label else_label (compile_exp env e) end_label
+  Printf.sprintf "%sjzer %s\n%sjump %s\n%s\n%s%s\ninsp 0 ; sadly mandatory nop instruction\n" (compile_exp env c) else_label (compile_exp env t) end_label else_label (compile_exp env e) end_label
+| EWhile (c, b) ->
+  let cond_label = new_label () in
+  let end_label = new_label () in
+  Printf.sprintf "%s\n%sjzer %s\n%sjump %s\n%s\ninsp 0 ; sadly mandatory nop instruction\n" cond_label (compile_exp env c) end_label (compile_exp env b) cond_label end_label

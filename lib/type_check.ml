@@ -54,6 +54,10 @@ and type_of type_env = function
   let e_type = type_of type_env e in
   assert_type type_env t e_type;
   e_type
+| EWhile (c, b) ->
+  assert_type type_env c TBool;
+  assert_type type_env b TUnit;
+  TUnit
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then
