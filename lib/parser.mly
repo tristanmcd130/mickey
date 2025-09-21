@@ -33,15 +33,21 @@
 %token VAR
 %token WHILE
 %token DO
+%token TPTR
+%token BANG
+%token ARROW
+%token AS
+%token AT
 %token <bool> BOOL
 %token <int> INT
 %token <string> ID
+%right ARROW
 %left OR
 %left AND
 %left EQ NE LT GT LE GE
 %left PLUS MINUS
 %left STAR SLASH
-%nonassoc NOT
+%nonassoc NOT BANG
 %start <Stmt.t> program
 %%
 
@@ -58,9 +64,10 @@ var: VAR; n = ID; COLON; t = type_	{Stmt.SVar (n, t)}
 param: n = ID; COLON; t = type_	{(n, t)}
 
 type_:
-| TINT	{TInt}
-| TUNIT	{TUnit}
-| TBOOL {Type.TBool}
+| TINT				{TInt}
+| TUNIT				{TUnit}
+| TBOOL 			{TBool}
+| t = type_; TPTR	{Type.TPtr t}
 
 local: LOCAL; p = param; IN	{p}
 
@@ -70,8 +77,10 @@ exp:
 | BREAK; LPAREN; e = exp; RPAREN							{EBreak e}
 | n = ID													{EVar n}
 | n = ID; LPAREN; a = separated_list(COMMA, exp); RPAREN	{ECall (n, a)}
+| AT; n = ID												{EAt n}
 | o = unary_op; r = exp										{EUnary (o, r)}
 | l = exp; o = binary_op; r = exp							{EBinary (l, o, r)}
+| e = exp; AS; t = type_									{EAs (e, t)}
 | n = ID; EQUAL; v = exp									{ESet (n, v)}
 | b = BOOL													{EBool b}
 | IF; c = exp; THEN; t = exp; ELSE; e = exp					{EIf (c, t, e)}
@@ -81,6 +90,7 @@ exp:
 %inline unary_op:
 | MINUS	{Exp.UNeg}
 | NOT	{Exp.UNot}
+| BANG	{Exp.UDeref}
 
 %inline binary_op:
 | PLUS	{Exp.BAdd}
@@ -95,3 +105,4 @@ exp:
 | LE	{Exp.BLE}
 | AND	{Exp.BAnd}
 | OR	{Exp.BOr}
+| ARROW	{Exp.BPtrSet}

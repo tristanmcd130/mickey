@@ -46,6 +46,11 @@ rule read = parse
 | "var"		{VAR}
 | "while"	{WHILE}
 | "do"		{DO}
+| "ptr"		{TPTR}
+| '!'		{BANG}
+| "<-"		{ARROW}
+| "as"		{AS}
+| '@'		{AT}
 | int		{INT (lexeme lexbuf |> int_of_string)}
 | id		{ID (lexeme lexbuf)}
 | '#'		{skip_comment lexbuf}

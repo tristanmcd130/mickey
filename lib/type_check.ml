@@ -29,6 +29,10 @@ and type_of type_env = function
 | EUnary (UNot, r) ->
   assert_type type_env r TBool;
   TBool
+| EUnary (UDeref, r) ->
+  (match type_of type_env r with
+  | TPtr t -> t
+  | _ -> failwith "Not a pointer, cannot be dereferenced")
 | EBinary (l, BAdd, r) | EBinary (l, BSub, r) | EBinary (l, BMul, r) | EBinary (l, BDiv, r) ->
   assert_type type_env l TInt;
   assert_type type_env r TInt;
@@ -44,6 +48,12 @@ and type_of type_env = function
   assert_type type_env l TBool;
   assert_type type_env r TBool;
   TBool
+| EBinary (l, BPtrSet, r) ->
+  let l_type = match type_of type_env l with
+  | TPtr t -> t
+  | _ -> failwith "Not a pointer, cannot be assigned through" in
+  assert_type type_env r l_type;
+  TUnit
 | ESet (n, v) ->
   assert_type type_env v (Env.find type_env n);
   TUnit
@@ -58,6 +68,8 @@ and type_of type_env = function
   assert_type type_env c TBool;
   assert_type type_env b TUnit;
   TUnit
+| EAs (e, t) -> t
+| EAt n -> TPtr (type_of type_env (EVar n))
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then

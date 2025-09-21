@@ -10,9 +10,12 @@ type t =
 | EBool of bool
 | EIf of t * t * t
 | EWhile of t * t
+| EAs of t * Type.t
+| EAt of string
 and unary_op =
 | UNeg
 | UNot
+| UDeref
 and binary_op =
 | BAdd
 | BSub
@@ -26,3 +29,4 @@ and binary_op =
 | BLE
 | BAnd
 | BOr
+| BPtrSet

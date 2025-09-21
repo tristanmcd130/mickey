@@ -18,21 +18,6 @@ popi
 desp 2
 retn
 
-add:
-lodl 1
-addl 2
-retn
-
-sub:
-lodl 1
-subl 2
-retn
-
-neg:
-loco 0
-subl 1
-retn
-
 c1: 1
 
 mul:
@@ -93,24 +78,6 @@ ltTrue:
 loco 1
 retn
 
-gt: ; y < x => x > y
-lodl 1
-push
-lodl 3
-push
-call lt:
-insp 2
-retn
-
-le: ; y >= x => x <= y
-lodl 1
-push
-lodl 3
-push
-call ge:
-insp 2
-retn
-
 and:
 lodl 1
 jzer andFalse:
@@ -123,9 +90,4 @@ lodl 1
 jnze orTrue:
 lodl 2
 orTrue:
-retn
-
-not:
-loco 1
-subl 1
 retn

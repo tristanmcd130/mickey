@@ -3,5 +3,6 @@ type t =
 | TUnit
 | TArrow of t list * t
 | TBool
+| TPtr of t
 
 val to_string: t -> string

@@ -5,11 +5,6 @@ fun factorial(n: int): int =
 		n * factorial(n - 1)
 
 fun main(): int =
-	local n: int in {
-		n = 0;
-		while n <= 8 do {
-			break(factorial(n));
-			n = n + 1
-		};
-		0
-	}
+	local n: int in
+	{@n <- factorial(5);
+	n}
