@@ -22,7 +22,7 @@ let rec compile program env = function
     IStod (Label "fp");
     ILodd (Label "tmp");
     IRetn;
-  ];
+  ]
   (*
   arg 3
   arg 2
@@ -42,11 +42,6 @@ let rec compile program env = function
   | _ -> failwith "Invalid global initializer")
 and compile_exp program env = function
 | Exp.EInt i -> Program.add_instructions program [ILoco (Int i)]
-| EBlock [] -> ()
-| EBlock [e] -> compile_exp program env e
-| EBlock (e :: es) ->
-  compile_exp program env e;
-  compile_exp program env (EBlock es)
 | ECall (n, a) ->
   (* (List.rev_map (fun x -> compile_exp env x ^ "push\n") a |> String.concat "") ^ Printf.sprintf "call %s:\ninsp %d\n" n (List.length a) *)
   List.rev a |> List.iter (fun x -> compile_exp program env x; Program.add_instructions program [IPush]);
@@ -91,7 +86,7 @@ and compile_exp program env = function
   Program.add_instructions program [
     IAddl 0;
     IInsp 1;
-  ];
+  ]
 | EBinary (l, BSub, r) ->
   (* Printf.sprintf "%spush\n%ssubl 0\ninsp 1\n" (compile_exp env r) (compile_exp env l) *)
   compile_exp program env r;
@@ -100,7 +95,7 @@ and compile_exp program env = function
   Program.add_instructions program [
     ISubl 0;
     IInsp 1;
-  ];
+  ]
 | EBinary (l, BMul, r) -> compile_exp program env (ECall ("mul", [l; r]))
 | EBinary (l, BDiv, r) -> compile_exp program env (ECall ("div", [l; r]))
 | EBinary (l, BEQ, r) -> compile_exp program env (ECall ("eq", [l; r]))
@@ -122,6 +117,9 @@ and compile_exp program env = function
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [IStod (Label n)]
   | Some i -> [IPush; ILoco (Int i); ICall (Label "setlocal"); IInsp 1])
+| EBinary (l, BChain, r) ->
+  compile_exp program env l;
+  compile_exp program env r
 | EBreak e ->
   compile_exp program env e;
   Program.add_instructions program [IHalt]
@@ -157,3 +155,4 @@ and compile_exp program env = function
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [ILoco (Label n)]
   | Some i -> [ILoco (Int i); IAddd (Label "fp")])
+| EUnit -> ()

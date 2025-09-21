@@ -7,7 +7,7 @@ type t = {
 let create () = {instructions = Dynarray.create (); constants = Hashtbl.create 10; label_num = 0}
 let rec add_instruction program = function
 | Instruction.ILoco (Int i) when i < 0 ->
-  let label = Printf.sprintf "cn%d" ~+i in
+  let label = Printf.sprintf "cn%d" (abs i) in
   add_constant program label i;
   add_instruction program (ILodd (Label label))
 | Instruction.ILoco (Int i) when i > 4095 ->

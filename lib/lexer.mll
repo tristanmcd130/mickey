@@ -5,7 +5,7 @@
 
 let ws = [' ' '\t']+
 let id = ['a'-'z' 'A'-'Z'] ['a'-'z' 'A'-'Z' '0'-'9']*
-let int = ['0'-'9']+
+let int = '-'? ['0'-'9']+
 
 rule read = parse
 | ws		{read lexbuf}
@@ -19,9 +19,7 @@ rule read = parse
 | "unit"	{TUNIT}
 | '+'		{PLUS}
 | '-'		{MINUS}
-| '{'		{LBRACE}
 | ';'		{SEMICOLON}
-| '}'		{RBRACE}
 | '='		{EQUAL}
 | "let"		{LET}
 | "in"		{IN}

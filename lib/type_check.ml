@@ -13,11 +13,6 @@ let rec type_check type_env = function
   Env.add type_env n t
 and type_of type_env = function
 | Exp.EInt i -> Type.TInt
-| EBlock [] -> TUnit
-| EBlock [e] -> type_of type_env e
-| EBlock (e :: es) -> 
-  type_of type_env e |> ignore;
-  type_of type_env (EBlock es)
 | ECall (n, a) ->
   (match Env.find type_env n with
   | Type.TArrow (ps, r) ->
@@ -56,6 +51,9 @@ and type_of type_env = function
   | _ -> failwith "Not a pointer, cannot be assigned through" in
   assert_type type_env r l_type;
   TUnit
+| EBinary (l, BChain, r) ->
+  type_of type_env l |> ignore;
+  type_of type_env r
 | ESet (n, v) ->
   assert_type type_env v (Env.find type_env n);
   TUnit
@@ -72,6 +70,7 @@ and type_of type_env = function
   TUnit
 | EAs (e, t) -> t
 | EAddrOf n -> TPtr (type_of type_env (EVar n))
+| EUnit -> TUnit
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then

@@ -8,9 +8,7 @@
 %token TUNIT
 %token PLUS
 %token MINUS
-%token LBRACE
 %token SEMICOLON
-%token RBRACE
 %token EQUAL
 %token LET
 %token IN
@@ -41,7 +39,9 @@
 %token <bool> BOOL
 %token <int> INT
 %token <string> ID
-%right ARROW
+%right SEMICOLON
+%right ARROW EQUAL
+%left AS
 %left OR
 %left AND
 %left EQ NE LT GT LE GE
@@ -71,10 +71,10 @@ literal:
 | i = INT					{EInt i}
 | e = exp; AS; t = type_	{EAs (e, t)}
 | b = BOOL					{EBool b}
+| LPAREN; RPAREN			{EUnit}
 
 exp:
 | l = literal												{l}
-| LBRACE; es = separated_list(SEMICOLON, exp); RBRACE		{EBlock es}
 | BREAK; LPAREN; e = exp; RPAREN							{EBreak e}
 | n = ID													{EVar n}
 | n = ID; LPAREN; a = separated_list(COMMA, exp); RPAREN	{ECall (n, a)}
@@ -92,16 +92,17 @@ exp:
 | BANG	{Exp.UDeref}
 
 %inline binary_op:
-| PLUS	{Exp.BAdd}
-| MINUS	{Exp.BSub}
-| STAR	{Exp.BMul}
-| SLASH	{Exp.BDiv}
-| EQ	{Exp.BEQ}
-| NE	{Exp.BNE}
-| GT	{Exp.BGT}
-| LT	{Exp.BLT}
-| GE	{Exp.BGE}
-| LE	{Exp.BLE}
-| AND	{Exp.BAnd}
-| OR	{Exp.BOr}
-| ARROW	{Exp.BPtrSet}
+| PLUS		{Exp.BAdd}
+| MINUS		{Exp.BSub}
+| STAR		{Exp.BMul}
+| SLASH		{Exp.BDiv}
+| EQ		{Exp.BEQ}
+| NE		{Exp.BNE}
+| GT		{Exp.BGT}
+| LT		{Exp.BLT}
+| GE		{Exp.BGE}
+| LE		{Exp.BLE}
+| AND		{Exp.BAnd}
+| OR		{Exp.BOr}
+| ARROW		{Exp.BPtrSet}
+| SEMICOLON	{Exp.BChain}

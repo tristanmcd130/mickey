@@ -1,6 +1,5 @@
 type t =
 | EInt of int
-| EBlock of t list
 | ECall of string * t list
 | EVar of string
 | EUnary of unary_op * t
@@ -12,6 +11,7 @@ type t =
 | EWhile of t * t
 | EAs of t * Type.t
 | EAddrOf of string
+| EUnit
 and unary_op =
 | UNeg
 | UNot
@@ -30,3 +30,4 @@ and binary_op =
 | BAnd
 | BOr
 | BPtrSet
+| BChain
