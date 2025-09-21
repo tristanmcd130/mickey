@@ -5,4 +5,4 @@
 
 (library
  (name mickey)
- (modules lexer parser type exp stmt env type_check compile))
+ (modules lexer parser type exp stmt env type_check instruction program compile))
