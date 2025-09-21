@@ -23,7 +23,7 @@ rule read = parse
 | ';'		{SEMICOLON}
 | '}'		{RBRACE}
 | '='		{EQUAL}
-| "local"	{LOCAL}
+| "let"		{LET}
 | "in"		{IN}
 | "break"	{BREAK}
 | "if"		{IF}

@@ -1,3 +1,5 @@
+var z: int = 5
+
 fun factorial(n: int): int =
 	if n <= 0 then
 		1
@@ -5,6 +7,8 @@ fun factorial(n: int): int =
 		n * factorial(n - 1)
 
 fun main(): int =
-	local n: int in
-	{@n <- factorial(5);
-	n}
+	let x: int ptr in
+	let y: int in
+	{x = @y;
+	x <- factorial(5) + z;
+	!x}

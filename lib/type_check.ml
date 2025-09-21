@@ -8,7 +8,9 @@ let rec type_check type_env = function
     failwith "main function must have type () -> int");
   Env.add type_env n (Type.TArrow (List.map snd ps, t));
   assert_type (Env.create (Some type_env) (ps @ ls)) b t
-| SVar (n, t) -> Env.add type_env n t
+| SVar (n, t, v) ->
+  assert_type type_env v t;
+  Env.add type_env n t
 and type_of type_env = function
 | Exp.EInt i -> Type.TInt
 | EBlock [] -> TUnit
@@ -69,7 +71,7 @@ and type_of type_env = function
   assert_type type_env b TUnit;
   TUnit
 | EAs (e, t) -> t
-| EAt n -> TPtr (type_of type_env (EVar n))
+| EAddrOf n -> TPtr (type_of type_env (EVar n))
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then

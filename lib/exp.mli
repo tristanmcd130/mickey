@@ -11,7 +11,7 @@ type t =
 | EIf of t * t * t
 | EWhile of t * t
 | EAs of t * Type.t
-| EAt of string
+| EAddrOf of string
 and unary_op =
 | UNeg
 | UNot

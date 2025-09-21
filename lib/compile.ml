@@ -21,7 +21,10 @@ temp 1
 temp 2
 temp 3      <- sp
 *)
-| SVar (n, _) -> n ^ ": 0\n\n"
+| SVar (n, _, v) ->
+  (match v with
+  | EInt i -> Printf.sprintf "%s: %d\n\n" n i 
+  | _ -> failwith "Invalid global initializer")
 and compile_exp env = function
 | EInt i -> Printf.sprintf "loco %d\n" i
 | EBlock [] -> ""
@@ -63,7 +66,7 @@ and compile_exp env = function
   let end_label = new_label () in
   Printf.sprintf "%s\n%sjzer %s\n%sjump %s\n%s\ninsp 0 ; sadly mandatory nop instruction\n" cond_label (compile_exp env c) end_label (compile_exp env b) cond_label end_label
 | EAs (e, _) -> compile_exp env e
-| EAt n ->
+| EAddrOf n ->
   (match Env.find_opt env n with
   | None -> Printf.sprintf "loco %s:\n" n
   | Some i -> Printf.sprintf "loco %d\naddd fp:\n" i)
