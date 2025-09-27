@@ -12,20 +12,22 @@ let create ?(read_callbacks = Hashtbl.create 0) ?(write_callbacks = Hashtbl.crea
   pc = 0;
   sp = 3968;
   memory =
-    if Bytes.length program > 4096 then
+    if Bytes.length program > 8192 then
       failwith "Program too big"
     else
-      program;
+      Bytes.extend program 0 (8192 - Bytes.length program);
   read_callbacks;
   write_callbacks;
 }
 let read state addr =
+  (* Printf.printf "READ %x\n" addr; *)
   (match Hashtbl.find_opt state.read_callbacks addr with
   | None -> ()
   | Some c -> c state);
-  Bytes.get_uint16_be state.memory addr
+  Bytes.get_uint16_be state.memory (addr * 2)
 let write state addr value =
-  Bytes.set_uint16_be state.memory addr value;
+  (* Printf.printf "WRITE %x %x\n" addr value; *)
+  Bytes.set_uint16_be state.memory (addr * 2) value;
   match Hashtbl.find_opt state.write_callbacks addr with
   | None -> ()
   | Some c -> c state
@@ -47,7 +49,8 @@ let pop state =
   state.sp <- state.sp + 1;
   result
 let step state =
-  let instruction = Bytes.get_uint16_be state.memory (let pc = state.pc in state.pc <- state.pc + 1; pc) in
+  let instruction = read state (let pc = state.pc in state.pc <- state.pc + 1; pc) in
+  (* Printf.printf "STEP %d: %x\n" (state.pc - 1) instruction; *)
   let addr = instruction land 4095 in
   let constant = instruction land 255 in
   (match instruction lsr 12 with
