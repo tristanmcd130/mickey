@@ -1,8 +1,0 @@
-(ocamllex lexer)
-
-(menhir
- (modules parser))
-
-(library
- (name mickey)
- (modules lexer parser type exp stmt env type_check instruction program compile))

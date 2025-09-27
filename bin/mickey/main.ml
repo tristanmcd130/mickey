@@ -7,4 +7,4 @@ let () =
   let program = Program.create () in
   let env = Env.create None [] in
   Compile.compile program env ast;
-  Program.to_string program |> print_endline
+  Program.assemble program |> print_endline

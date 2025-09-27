@@ -38,7 +38,8 @@ let rec compile program env = function
   *)
 | SVar (n, _, v) ->
   (match v with
-  | EInt i -> Program.add_constant program n i
+  | EInt i -> Program.add_constant program n (CInt i)
+  | EString s -> Program.add_constant program n (CString s)
   | _ -> failwith "Invalid global initializer")
 and compile_exp program env = function
 | Exp.EInt i -> Program.add_instructions program [ILoco (Int i)]
@@ -156,3 +157,7 @@ and compile_exp program env = function
   | None -> [ILoco (Label n)]
   | Some i -> [ILoco (Int i); IAddd (Label "fp")])
 | EUnit -> ()
+| EString s ->
+  let label = Printf.sprintf "s%d" (String.hash s) in
+  Program.add_constant program label (CString s);
+  Program.add_instructions program [ILoco (Label label)]

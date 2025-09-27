@@ -1,4 +1,3 @@
-%token EOF
 %token FUN
 %token LPAREN
 %token COMMA
@@ -36,9 +35,12 @@
 %token ARROW
 %token AS
 %token AT
+%token TSTRING
 %token <bool> BOOL
 %token <int> INT
 %token <string> ID
+%token <string> STRING
+%token EOF
 %right SEMICOLON
 %right ARROW EQUAL
 %left AS
@@ -63,7 +65,8 @@ type_:
 | TINT				{TInt}
 | TUNIT				{TUnit}
 | TBOOL 			{TBool}
-| t = type_; TPTR	{Type.TPtr t}
+| t = type_; TPTR	{TPtr t}
+| TSTRING			{Type.TString}
 
 let_: LET; n = ID; COLON; t = type_; IN	{(n, t)}
 
@@ -72,6 +75,7 @@ literal:
 | e = exp; AS; t = type_	{EAs (e, t)}
 | b = BOOL					{EBool b}
 | LPAREN; RPAREN			{EUnit}
+| s = STRING				{EString s}
 
 exp:
 | l = literal												{l}

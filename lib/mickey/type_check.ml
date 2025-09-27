@@ -71,6 +71,7 @@ and type_of type_env = function
 | EAs (e, t) -> t
 | EAddrOf n -> TPtr (type_of type_env (EVar n))
 | EUnit -> TUnit
+| EString _ -> TString
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then

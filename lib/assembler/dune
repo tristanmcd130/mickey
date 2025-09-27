@@ -1,0 +1,9 @@
+(ocamllex lexer)
+
+(menhir
+ (modules parser))
+
+(library
+ (name assembler)
+ (modules lexer parser assemble)
+ (libraries common))

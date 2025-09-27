@@ -24,6 +24,7 @@ type t =
 | IDesp of int
 | IHalt
 | ILabel of string
+| IInt of int
 and arg =
 | Int of int
 | Label of string

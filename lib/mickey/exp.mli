@@ -12,6 +12,7 @@ type t =
 | EAs of t * Type.t
 | EAddrOf of string
 | EUnit
+| EString of string
 and unary_op =
 | UNeg
 | UNot

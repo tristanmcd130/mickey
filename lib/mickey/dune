@@ -1,0 +1,9 @@
+(ocamllex lexer)
+
+(menhir
+ (modules parser))
+
+(library
+ (name mickey)
+ (modules lexer parser type exp stmt env type_check program compile)
+ (libraries common))

@@ -17,6 +17,7 @@ rule read = parse
 | ':'		{COLON}
 | "int"		{TINT}
 | "unit"	{TUNIT}
+| int		{INT (lexeme lexbuf |> int_of_string)}
 | '+'		{PLUS}
 | '-'		{MINUS}
 | ';'		{SEMICOLON}
@@ -49,12 +50,18 @@ rule read = parse
 | "<-"		{ARROW}
 | "as"		{AS}
 | '@'		{AT}
-| int		{INT (lexeme lexbuf |> int_of_string)}
+| "string"	{TSTRING}
 | id		{ID (lexeme lexbuf)}
 | '#'		{skip_comment lexbuf}
+| '"'		{read_string (Buffer.create 10) lexbuf}
 | _			{failwith ("Unexpected character: " ^ lexeme lexbuf)}
 | eof		{EOF}
 and skip_comment = parse
 | '\n'	{new_line lexbuf; read lexbuf}
 | eof	{EOF}
 | _		{skip_comment lexbuf}
+and read_string buf = parse
+| '"'		{STRING (Buffer.contents buf)}
+| "\\\""	{Buffer.add_string buf "\\\""; read_string buf lexbuf}
+| _			{Buffer.add_string buf (lexeme lexbuf); read_string buf lexbuf}
+| eof		{failwith "Unterminated string"}
