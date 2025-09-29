@@ -1,15 +1,7 @@
-var z: int = 5
-var s: string = "poopy pants"
-
 fun factorial(n: int): int =
 	if n <= 0 then
 		1
 	else
 		n * factorial(n - 1)
 
-fun main(): int =
-	let x: int in
-	let y: int ptr in
-	y = @x;
-	y <- "piss your pants now" as int;
-	x
+fun main(): int = factorial(5)

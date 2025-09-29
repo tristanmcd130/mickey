@@ -55,7 +55,7 @@ instruction:
 | SWAP				{ISwap}
 | INSP; i = INT		{IInsp i}
 | DESP; i = INT		{IDesp i}
-| HALT				{IHalt}
+| HALT; i = INT		{IHalt i}
 | l = LABEL; COLON	{ILabel l}
 | i = INT			{IInt i}
 

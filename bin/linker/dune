@@ -1,0 +1,4 @@
+(executable
+ (public_name linker)
+ (name main)
+ (libraries common linker))

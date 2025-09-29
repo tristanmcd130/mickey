@@ -1,0 +1,4 @@
+(library
+ (name linker)
+ (modules link)
+ (libraries common))

@@ -1,17 +1,17 @@
 call main
-halt
+halt 1
 
 fp: 0
 
 tmp: 0
 
-getlocal: ; offset in ac
+getLocal: ; offset in ac
 addd fp
 pshi
 pop
 retn
 
-setlocal: ; value on stack, offset in ac
+setLocal: ; value on stack, offset in ac
 addd fp
 insp 1
 popi

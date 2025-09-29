@@ -22,7 +22,7 @@ type t =
 | ISwap
 | IInsp of int
 | IDesp of int
-| IHalt
+| IHalt of int
 | ILabel of string
 | IInt of int
 and arg =

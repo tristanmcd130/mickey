@@ -27,6 +27,6 @@ let new_label program =
 let constant_to_string = function
 | CInt i -> string_of_int i
 | CString s -> "\"" ^ s ^ "\""
-let assemble program =
+let to_string program =
   (Hashtbl.to_seq program.constants |> Seq.map (fun (k, v) -> Printf.sprintf "%s: %s\n" k (constant_to_string v)) |> List.of_seq |> String.concat "")
   ^ (Dynarray.map Common.Instruction.to_string program.instructions |> Dynarray.to_list |> String.concat "\n")

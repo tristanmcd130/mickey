@@ -98,9 +98,37 @@ let step state =
       state.sp <- state.sp - constant;
       if state.sp < 0 then
         failwith "Stack overflow"
+    | 15 ->
+      (match instruction land 255 with
+      | 1 ->
+        let stack = Stack.create () in
+        let debug = ref true in
+        while !debug do
+          try
+            print_string "> ";
+            let commands = read_line () |> String.split_on_char ' ' in
+            List.iter (function
+            | "ac" -> Stack.push state.ac stack
+            | "pc" -> Stack.push state.pc stack
+            | "sp" -> Stack.push state.sp stack
+            | "@" -> Stack.push (read state (Stack.pop stack)) stack
+            | "!" ->
+              let addr = Stack.pop stack in
+              let value = Stack.pop stack in
+              write state addr value
+            | "." -> Stack.pop stack |> Printf.printf "%d\n"
+            | "continue" -> debug := false
+            | "quit" -> exit 0
+            | i -> Stack.push (int_of_string i) stack) commands;
+            Stack.iter (Printf.printf "%d ") stack;
+            print_newline ()
+          with
+          | e -> print_endline ("Error: " ^ Printexc.to_string e)
+        done
+      | _ -> ())
     | _ -> ())
   | _ -> ());
-  instruction lsr 8 <> 255
+  instruction <> 255 lsl 8
 let run state =
   while step state do
     ()

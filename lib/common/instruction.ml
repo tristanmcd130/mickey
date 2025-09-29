@@ -22,7 +22,7 @@ type t =
 | ISwap
 | IInsp of int
 | IDesp of int
-| IHalt
+| IHalt of int
 | ILabel of string
 | IInt of int
 and arg =
@@ -56,6 +56,6 @@ let to_string = function
 | ISwap -> "swap"
 | IInsp a -> "insp " ^ string_of_int a
 | IDesp a -> "desp " ^ string_of_int a
-| IHalt -> "halt"
+| IHalt a -> "halt " ^ string_of_int a
 | ILabel l -> l ^ ":"
 | IInt i -> string_of_int i

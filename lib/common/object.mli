@@ -1,7 +1,8 @@
-type t
+type t = {
+  labels: (string, int) Hashtbl.t;
+  relocations: (int, string) Hashtbl.t;
+  code: Bytes.t; (* TODO: try changing this to Bytes.t *)
+}
 
-val create: unit -> t
-val add_word: t -> int -> unit
-val add_label: t -> string -> unit
-val use_label: t -> string -> unit
 val to_bytes: t -> bytes
+val of_bytes: bytes -> t

@@ -12,7 +12,7 @@ let rec type_check type_env = function
   assert_type type_env v t;
   Env.add type_env n t
 and type_of type_env = function
-| Exp.EInt i -> Type.TInt
+| Exp.EInt _ -> Type.TInt
 | ECall (n, a) ->
   (match Env.find type_env n with
   | Type.TArrow (ps, r) ->
@@ -68,7 +68,7 @@ and type_of type_env = function
   assert_type type_env c TBool;
   assert_type type_env b TUnit;
   TUnit
-| EAs (e, t) -> t
+| EAs (_, t) -> t
 | EAddrOf n -> TPtr (type_of type_env (EVar n))
 | EUnit -> TUnit
 | EString _ -> TString

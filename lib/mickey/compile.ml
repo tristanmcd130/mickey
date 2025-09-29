@@ -4,7 +4,6 @@ let rec compile program env = function
   compile program env s;
   compile program env (SProgram ss)
 | SFun (n, ps, _, ls, b) ->
-  (* Printf.sprintf "%s:\nlodd fp:\npush\ndesp %d\nswap\nstod fp:\nswap\n%sstod tmp:\ninsp %d\npop\nstod fp:\nlodd tmp:\nretn\n\n" n (List.length ls) (compile_exp (Env.create (Some env) (List.mapi (fun i (n, _) -> (n, i)) (ls @ [("", Type.TUnit); ("", TUnit)] @ ps))) b) (List.length ls) *)
   Program.add_instructions program [
     ILabel n;
     ILodd (Label "fp");
@@ -23,19 +22,6 @@ let rec compile program env = function
     ILodd (Label "tmp");
     IRetn;
   ]
-  (*
-  arg 3
-  arg 2
-  arg 1
-  return addr
-  old fp
-  local 3
-  local 2
-  local 1     <- fp
-  temp 1
-  temp 2
-  temp 3      <- sp
-  *)
 | SVar (n, _, v) ->
   (match v with
   | EInt i -> Program.add_constant program n (CInt i)
@@ -44,7 +30,6 @@ let rec compile program env = function
 and compile_exp program env = function
 | Exp.EInt i -> Program.add_instructions program [ILoco (Int i)]
 | ECall (n, a) ->
-  (* (List.rev_map (fun x -> compile_exp env x ^ "push\n") a |> String.concat "") ^ Printf.sprintf "call %s:\ninsp %d\n" n (List.length a) *)
   List.rev a |> List.iter (fun x -> compile_exp program env x; Program.add_instructions program [IPush]);
   Program.add_instructions program [
     ICall (Label n);
@@ -53,9 +38,8 @@ and compile_exp program env = function
 | EVar n ->
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [ILodd (Label n)]
-  | Some i -> [ILoco (Int i); ICall (Label "getlocal")])
+  | Some i -> [ILoco (Int i); ICall (Label "getLocal")])
 | EUnary (UNeg, r) ->
-  (* compile_exp env r ^ "push\nloco 0\nsubl 0\ninsp 1\n" *)
   compile_exp program env r;
   Program.add_instructions program [
     IPush;
@@ -64,7 +48,6 @@ and compile_exp program env = function
     IInsp 1;
   ]
 | EUnary (UNot, r) ->
-  (* compile_exp env r ^ "push\nloco 1\nsubl 0\ninsp 1\n" *)
   compile_exp program env r;
   Program.add_instructions program [
     IPush;
@@ -73,14 +56,12 @@ and compile_exp program env = function
     IInsp 1;
   ]
 | EUnary (UDeref, r) ->
-  (* compile_exp env r ^ "pshi\npop\n" *)
   compile_exp program env r;
   Program.add_instructions program [
     IPshi;
     IPop;
   ]
 | EBinary (l, BAdd, r) ->
-  (* Printf.sprintf "%spush\n%saddl 0\ninsp 1\n" (compile_exp env r) (compile_exp env l) *)
   compile_exp program env r;
   Program.add_instructions program [IPush];
   compile_exp program env l;
@@ -89,7 +70,6 @@ and compile_exp program env = function
     IInsp 1;
   ]
 | EBinary (l, BSub, r) ->
-  (* Printf.sprintf "%spush\n%ssubl 0\ninsp 1\n" (compile_exp env r) (compile_exp env l) *)
   compile_exp program env r;
   Program.add_instructions program [IPush];
   compile_exp program env l;
@@ -108,7 +88,6 @@ and compile_exp program env = function
 | EBinary (l, BAnd, r) -> compile_exp program env (ECall ("and", [l; r]))
 | EBinary (l, BOr, r) -> compile_exp program env (ECall ("or", [l; r]))
 | EBinary (l, BPtrSet, r) ->
-  (* Printf.sprintf "%spush\n%spopi\n" (compile_exp env r) (compile_exp env l) *)
   compile_exp program env r;
   Program.add_instructions program [IPush];
   compile_exp program env l;
@@ -117,19 +96,18 @@ and compile_exp program env = function
   compile_exp program env v;
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [IStod (Label n)]
-  | Some i -> [IPush; ILoco (Int i); ICall (Label "setlocal"); IInsp 1])
+  | Some i -> [IPush; ILoco (Int i); ICall (Label "setLocal"); IInsp 1])
 | EBinary (l, BChain, r) ->
   compile_exp program env l;
   compile_exp program env r
 | EBreak e ->
   compile_exp program env e;
-  Program.add_instructions program [IHalt]
+  Program.add_instructions program [IHalt 1]
 | EBool true -> Program.add_instructions program [ILoco (Int 1)]
 | EBool false -> Program.add_instructions program [ILoco (Int 0)]
 | EIf (c, t, e) ->
   let else_label = Program.new_label program in
   let end_label = Program.new_label program in 
-  (* Printf.sprintf "%sjzer %s\n%sjump %s\n%s\n%s%s\ninsp 0 ; sadly mandatory nop instruction\n" (compile_exp env c) else_label (compile_exp env t) end_label else_label (compile_exp env e) end_label *)
   compile_exp program env c;
   Program.add_instructions program [IJzer (Label else_label)];
   compile_exp program env t;
@@ -142,7 +120,6 @@ and compile_exp program env = function
 | EWhile (c, b) ->
   let cond_label = Program.new_label program in
   let end_label = Program.new_label program in
-  (* Printf.sprintf "%s\n%sjzer %s\n%sjump %s\n%s\ninsp 0 ; sadly mandatory nop instruction\n" cond_label (compile_exp env c) end_label (compile_exp env b) cond_label end_label *)
   Program.add_instructions program [ILabel cond_label];
   compile_exp program env c;
   Program.add_instructions program [IJzer (Label end_label)];
