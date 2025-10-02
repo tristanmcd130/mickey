@@ -5,7 +5,10 @@ let assemble instructions: Object.t =
 	let labels = Hashtbl.create 10 in
 	let relocations = Hashtbl.create 10 in
 	let arg_to_int = function
-	| Instruction.Int i -> i
+	| Instruction.Int i ->
+		if i < 0 || i > 4095 then
+			failwith "Address out of range";
+		i
 	| Label l ->
 		Hashtbl.replace relocations (Buffer.length buffer / 2) l;
 		0 in
@@ -33,8 +36,9 @@ let assemble instructions: Object.t =
 	| ISwap -> Buffer.add_uint16_be buffer 0b1111101000000000
 	| IInsp a -> Buffer.add_uint16_be buffer (0b1111110000000000 + a)
 	| IDesp a -> Buffer.add_uint16_be buffer (0b1111111000000000 + a)
-	| IHalt a -> Buffer.add_uint16_be buffer (0b1111111100000000 + a)
+	| IHalt -> Buffer.add_uint16_be buffer 0b1111111100000000
 	| ILabel l -> Hashtbl.replace labels l (Buffer.length buffer / 2)
-	| IInt i -> Buffer.add_uint16_be buffer i in
+	| IInt i -> Buffer.add_uint16_be buffer i
+	| IString s -> Buffer.add_bytes buffer (Bytes.of_string (s ^ "\x00")) in
 	List.iter assemble_instruction instructions;
 	{labels; relocations; code = Buffer.to_bytes buffer}

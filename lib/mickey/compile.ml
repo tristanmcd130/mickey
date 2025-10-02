@@ -13,7 +13,9 @@ let rec compile program env = function
     IStod (Label "fp");
     ISwap;
   ];
-  compile_exp program (Env.create (Some env) (List.mapi (fun i (n, _) -> (n, i)) (ls @ [("", Type.TUnit); ("", TUnit)] @ ps))) b;
+  let local_env = Env.create (Some env) (List.mapi (fun i (n, _) -> (n, i)) ((List.map (fun (n, t, _) -> (n, t)) ls) @ [("", Type.TUnit); ("", TUnit)] @ ps)) in
+  List.iter (fun (n, _, v) -> compile_exp program local_env (Exp.ESet (n, v))) ls;
+  compile_exp program local_env b;
   Program.add_instructions program [
     IStod (Label "tmp");
     IInsp (List.length ls);
@@ -38,7 +40,7 @@ and compile_exp program env = function
 | EVar n ->
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [ILodd (Label n)]
-  | Some i -> [ILoco (Int i); ICall (Label "getLocal")])
+  | Some i -> [ILoco (Int i); ICall (Label "get_local")])
 | EUnary (UNeg, r) ->
   compile_exp program env r;
   Program.add_instructions program [
@@ -96,13 +98,10 @@ and compile_exp program env = function
   compile_exp program env v;
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [IStod (Label n)]
-  | Some i -> [IPush; ILoco (Int i); ICall (Label "setLocal"); IInsp 1])
-| EBinary (l, BChain, r) ->
-  compile_exp program env l;
-  compile_exp program env r
+  | Some i -> [IPush; ILoco (Int i); ICall (Label "set_local"); IInsp 1])
 | EBreak e ->
   compile_exp program env e;
-  Program.add_instructions program [IHalt 1]
+  Program.add_instructions program [IHalt]
 | EBool true -> Program.add_instructions program [ILoco (Int 1)]
 | EBool false -> Program.add_instructions program [ILoco (Int 0)]
 | EIf (c, t, e) ->
@@ -138,3 +137,7 @@ and compile_exp program env = function
   let label = Printf.sprintf "s%d" (String.hash s) in
   Program.add_constant program label (CString s);
   Program.add_instructions program [ILoco (Label label)]
+| EBlock [] -> ()
+| EBlock (e :: es) ->
+  compile_exp program env e;
+  compile_exp program env (EBlock es);

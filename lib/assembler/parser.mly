@@ -25,6 +25,7 @@
 %token HALT
 %token <string> LABEL
 %token <int> INT
+%token <string> STRING
 %token EOF
 %start <Common.Instruction.t list> program
 %%
@@ -55,9 +56,10 @@ instruction:
 | SWAP				{ISwap}
 | INSP; i = INT		{IInsp i}
 | DESP; i = INT		{IDesp i}
-| HALT; i = INT		{IHalt i}
+| HALT				{IHalt}
 | l = LABEL; COLON	{ILabel l}
 | i = INT			{IInt i}
+| s = STRING		{IString s}
 
 arg:
 | i = INT	{Int i}

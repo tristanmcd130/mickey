@@ -22,9 +22,10 @@ type t =
 | ISwap
 | IInsp of int
 | IDesp of int
-| IHalt of int
+| IHalt
 | ILabel of string
 | IInt of int
+| IString of string
 and arg =
 | Int of int
 | Label of string
@@ -56,6 +57,7 @@ let to_string = function
 | ISwap -> "swap"
 | IInsp a -> "insp " ^ string_of_int a
 | IDesp a -> "desp " ^ string_of_int a
-| IHalt a -> "halt " ^ string_of_int a
+| IHalt -> "halt"
 | ILabel l -> l ^ ":"
 | IInt i -> string_of_int i
+| IString s -> Printf.sprintf "\"%s\"" (String.escaped s)

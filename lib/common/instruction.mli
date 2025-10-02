@@ -22,9 +22,10 @@ type t =
 | ISwap
 | IInsp of int
 | IDesp of int
-| IHalt of int
+| IHalt
 | ILabel of string
 | IInt of int
+| IString of string
 and arg =
 | Int of int
 | Label of string

@@ -1,17 +1,17 @@
 call main
-halt 1
+halt
 
 fp: 0
 
 tmp: 0
 
-getLocal: ; offset in ac
+get_local: ; offset in ac
 addd fp
 pshi
 pop
 retn
 
-setLocal: ; value on stack, offset in ac
+set_local: ; value on stack, offset in ac
 addd fp
 insp 1
 popi
@@ -24,16 +24,34 @@ mul:
 desp 1
 loco 0
 stol 0
-mulCond:
+mul_cond:
 lodl 2
-jzer mulEnd
+jzer mul_end
 subd c1
 stol 2
 lodl 0
 addl 3
 stol 0
-jump mulCond
-mulEnd:
+jump mul_cond
+mul_end:
+lodl 0
+insp 1
+retn
+
+div:
+desp 1
+loco 0
+stol 0
+div_cond:
+lodl 2
+subl 3
+jneg div_end
+stol 2
+lodl 0
+addd c1
+stol 0
+jump div_cond
+div_end:
 lodl 0
 insp 1
 retn
@@ -41,53 +59,53 @@ retn
 eq:
 lodl 1
 subl 2
-jzer eqTrue
+jzer eq_true
 loco 0
 retn
-eqTrue:
+eq_true:
 loco 1
 retn
 
 ne:
 lodl 1
 subl 2
-jnze neTrue
+jnze ne_true
 loco 0
 retn
-neTrue:
+ne_true:
 loco 1
 retn
 
 ge: ; x - y >= 0 => x >= y
 lodl 1
 subl 2
-jpos geTrue
+jpos ge_true
 loco 0
 retn
-geTrue:
+ge_true:
 loco 1
 retn
 
 lt: ; x - y < 0 => x < y
 lodl 1
 subl 2
-jneg ltTrue
+jneg lt_true
 loco 0
 retn
-ltTrue:
+lt_true:
 loco 1
 retn
 
 and:
 lodl 1
-jzer andFalse
+jzer and_false
 lodl 2
-andFalse:
+and_false:
 retn
 
 or:
 lodl 1
-jnze orTrue
+jnze or_true
 lodl 2
-orTrue:
+or_true:
 retn

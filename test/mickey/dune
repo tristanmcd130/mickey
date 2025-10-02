@@ -1,0 +1,6 @@
+(test
+ (name test_mickey)
+ (libraries ounit2 common mickey assembler linker simulator)
+ (deps
+  ../../prelude.obj
+  ../../heap.obj))

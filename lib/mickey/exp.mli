@@ -13,6 +13,7 @@ type t =
 | EAddrOf of string
 | EUnit
 | EString of string
+| EBlock of t list
 and unary_op =
 | UNeg
 | UNot
@@ -31,4 +32,3 @@ and binary_op =
 | BAnd
 | BOr
 | BPtrSet
-| BChain

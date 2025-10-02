@@ -4,7 +4,7 @@
 }
 
 let ws = [' ' '\t']+
-let id = ['a'-'z' 'A'-'Z'] ['a'-'z' 'A'-'Z' '0'-'9']*
+let id = ['_' 'a'-'z' 'A'-'Z'] ['_' 'a'-'z' 'A'-'Z' '0'-'9']*
 let int = '-'? ['0'-'9']+
 
 rule read = parse
@@ -22,11 +22,8 @@ rule read = parse
 | '-'		{MINUS}
 | ';'		{SEMICOLON}
 | '='		{EQUAL}
-| "let"		{LET}
-| "in"		{IN}
 | "break"	{BREAK}
 | "if"		{IF}
-| "then"	{THEN}
 | "else"	{ELSE}
 | "true"	{BOOL true}
 | "false"	{BOOL false}
@@ -44,13 +41,14 @@ rule read = parse
 | "not"		{NOT}
 | "var"		{VAR}
 | "while"	{WHILE}
-| "do"		{DO}
 | "ptr"		{TPTR}
 | '!'		{BANG}
 | "<-"		{ARROW}
 | "as"		{AS}
 | '@'		{AT}
 | "string"	{TSTRING}
+| '{'		{LBRACE}
+| '}'		{RBRACE}
 | id		{ID (lexeme lexbuf)}
 | '#'		{skip_comment lexbuf}
 | '"'		{read_string (Buffer.create 10) lexbuf}

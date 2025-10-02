@@ -25,7 +25,7 @@ let link objects =
       table);
     code = Bytes.cat obj1.code obj2.code;
   } in
-  let exe = List.fold_left (fun x y -> patch (link2 x y)) {labels = Hashtbl.create 0; relocations = Hashtbl.create 0; code = Bytes.create 0} objects in
+  let exe = List.fold_left (fun x y -> patch (link2 x y)) (Object.create [] [] []) objects in
   if Hashtbl.length exe.relocations > 0 then
     failwith (Printf.sprintf "Object not fully resolved: %s" (Hashtbl.to_seq exe.relocations |> Seq.map (fun (k, v) -> Printf.sprintf "%s at %04x" v k) |> List.of_seq |> String.concat ", "));
   exe.code

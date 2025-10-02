@@ -11,3 +11,4 @@ val create: ?read_callbacks: (int, t -> unit) Hashtbl.t -> ?write_callbacks: (in
 val read: t -> int -> int
 val write: t -> int -> int -> unit
 val run: t -> unit
+val debug: t -> unit

@@ -50,7 +50,7 @@ let pop state =
   result
 let step state =
   let instruction = read state (let pc = state.pc in state.pc <- state.pc + 1; pc) in
-  (* Printf.printf "STEP %d: %x\n" (state.pc - 1) instruction; *)
+  (* Printf.printf "STEP %d %x (AC = %x, SP = %x)\n" (state.pc - 1) instruction state.ac state.sp; *)
   let addr = instruction land 4095 in
   let constant = instruction land 255 in
   (match instruction lsr 12 with
@@ -98,38 +98,35 @@ let step state =
       state.sp <- state.sp - constant;
       if state.sp < 0 then
         failwith "Stack overflow"
-    | 15 ->
-      (match instruction land 255 with
-      | 1 ->
-        let stack = Stack.create () in
-        let debug = ref true in
-        while !debug do
-          try
-            print_string "> ";
-            let commands = read_line () |> String.split_on_char ' ' in
-            List.iter (function
-            | "ac" -> Stack.push state.ac stack
-            | "pc" -> Stack.push state.pc stack
-            | "sp" -> Stack.push state.sp stack
-            | "@" -> Stack.push (read state (Stack.pop stack)) stack
-            | "!" ->
-              let addr = Stack.pop stack in
-              let value = Stack.pop stack in
-              write state addr value
-            | "." -> Stack.pop stack |> Printf.printf "%d\n"
-            | "continue" -> debug := false
-            | "quit" -> exit 0
-            | i -> Stack.push (int_of_string i) stack) commands;
-            Stack.iter (Printf.printf "%d ") stack;
-            print_newline ()
-          with
-          | e -> print_endline ("Error: " ^ Printexc.to_string e)
-        done
-      | _ -> ())
     | _ -> ())
   | _ -> ());
-  instruction <> 255 lsl 8
+  (instruction lsr 8) <> 255
 let run state =
   while step state do
     ()
+  done
+let debug state =
+  let stack = Stack.create () in
+  let running = ref false in
+  while not !running do
+    try
+      print_string "> ";
+      let commands = read_line () |> String.split_on_char ' ' in
+      List.iter (function
+      | "ac" -> Stack.push state.ac stack
+      | "pc" -> Stack.push state.pc stack
+      | "sp" -> Stack.push state.sp stack
+      | "@" -> Stack.push (read state (Stack.pop stack)) stack
+      | "!" ->
+        let addr = Stack.pop stack in
+        let value = Stack.pop stack in
+        write state addr value
+      | "." -> Printf.printf "%d\n" (Stack.pop stack - 32768)
+      | "c" -> running := true
+      | "q" -> exit 0
+      | i -> Stack.push (int_of_string i) stack) commands;
+      Stack.iter (Printf.printf "%d ") stack;
+      print_newline ()
+    with
+    | e -> print_endline ("Error: " ^ Printexc.to_string e)
   done

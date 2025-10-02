@@ -40,7 +40,7 @@ subd c1
 type t = {
   labels: (string, int) Hashtbl.t;
   relocations: (int, string) Hashtbl.t;
-  code: Bytes.t; (* TODO: try changing this to Bytes.t *)
+  code: Bytes.t;
 }
 
 module StringSet = Set.Make(struct
@@ -48,6 +48,14 @@ module StringSet = Set.Make(struct
   let compare = String.compare
 end)
 
+let create labels relocations code = {
+  labels = List.to_seq labels |> Hashtbl.of_seq;
+  relocations = List.to_seq relocations |> Hashtbl.of_seq;
+  code =
+    let buffer = Buffer.create 10 in
+    List.iter (Buffer.add_uint16_be buffer) code;
+    Buffer.to_bytes buffer
+}
 let to_bytes object' =
   let buffer = Buffer.create 100 in
   (* Printf.printf "BUFFER SIZE: %d\n" (Buffer.length buffer); *)

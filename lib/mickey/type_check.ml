@@ -7,7 +7,11 @@ let rec type_check type_env = function
   (if n = "main" && (ps <> [] || t <> TInt) then
     failwith "main function must have type () -> int");
   Env.add type_env n (Type.TArrow (List.map snd ps, t));
-  assert_type (Env.create (Some type_env) (ps @ ls)) b t
+  let local_type_env = Env.create (Some type_env) ps in
+  List.iter (fun (n, t, v) ->
+    assert_type local_type_env v t;
+    Env.add local_type_env n t) ls;
+  assert_type local_type_env b t
 | SVar (n, t, v) ->
   assert_type type_env v t;
   Env.add type_env n t
@@ -16,9 +20,11 @@ and type_of type_env = function
 | ECall (n, a) ->
   (match Env.find type_env n with
   | Type.TArrow (ps, r) ->
+    if List.length a <> List.length ps then
+      failwith (Printf.sprintf "Function %s expected %d arguments, but received %d" n (List.length ps) (List.length a));
     List.iter (fun (v, t) -> assert_type type_env v t) (List.combine a ps);
     r
-  | _ -> failwith "Not a function")
+  | _ -> failwith (n ^ " is not a function, cannot be called"))
 | EVar n -> Env.find type_env n
 | EUnary (UNeg, r) ->
   assert_type type_env r TInt;
@@ -51,9 +57,6 @@ and type_of type_env = function
   | _ -> failwith "Not a pointer, cannot be assigned through" in
   assert_type type_env r l_type;
   TUnit
-| EBinary (l, BChain, r) ->
-  type_of type_env l |> ignore;
-  type_of type_env r
 | ESet (n, v) ->
   assert_type type_env v (Env.find type_env n);
   TUnit
@@ -68,10 +71,17 @@ and type_of type_env = function
   assert_type type_env c TBool;
   assert_type type_env b TUnit;
   TUnit
-| EAs (_, t) -> t
+| EAs (e, t) ->
+  type_of type_env e |> ignore;
+  t
 | EAddrOf n -> TPtr (type_of type_env (EVar n))
 | EUnit -> TUnit
 | EString _ -> TString
+| EBlock [] -> TUnit
+| EBlock [e] -> type_of type_env e
+| EBlock (e :: es) ->
+  type_of type_env e |> ignore;
+  type_of type_env (EBlock es)
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then
