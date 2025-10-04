@@ -1,10 +1,5 @@
-fun factorial(n: int): int {
-	if(n <= 0)
-		1
-	else
-		n * factorial(n - 1)
-}
+import "math.mks"
 
 fun main(): int {
-	44 * 21
+	divide(4420, -21)
 }

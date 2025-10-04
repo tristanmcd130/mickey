@@ -49,6 +49,8 @@ rule read = parse
 | "string"	{TSTRING}
 | '{'		{LBRACE}
 | '}'		{RBRACE}
+| "import"	{IMPORT}
+| "sig"		{SIG}
 | id		{ID (lexeme lexbuf)}
 | '#'		{skip_comment lexbuf}
 | '"'		{read_string (Buffer.create 10) lexbuf}

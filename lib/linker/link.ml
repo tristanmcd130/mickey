@@ -1,5 +1,6 @@
 open Common
 
+(* make the replacements you can based on what's available, leave the rest alone *)
 let patch (object': Object.t): Object.t = 
   let bytes = object'.code in
   let relocations_copy = Hashtbl.copy object'.relocations in
@@ -7,7 +8,7 @@ let patch (object': Object.t): Object.t =
   | None -> ()
   | Some i ->
     Bytes.set_uint16_be bytes (k * 2) (Bytes.get_uint16_be bytes (k * 2) + i);
-    Hashtbl.remove relocations_copy k) object'.relocations;
+    Hashtbl.remove relocations_copy k) object'.relocations; (* if a relocation can be made, do it and then remove its entry *)
   {
     labels = object'.labels;
     relocations = relocations_copy;
@@ -17,7 +18,7 @@ let link objects =
   let link2 (obj1: Object.t) (obj2: Object.t): Object.t = {
     labels =
       (let table = obj1.labels in
-      Hashtbl.iter (fun k v -> Hashtbl.replace table k (v + Bytes.length obj1.code / 2)) obj2.labels;
+      Hashtbl.iter (fun k v -> Hashtbl.replace table k (v + Bytes.length obj1.code / 2)) obj2.labels; (* add offsets based on size of 1st object *)
       table);
     relocations =
       (let table = obj1.relocations in

@@ -1,22 +1,12 @@
+loco 8
+stod 4093
+stod 4095
 call main
 halt
 
 fp: 0
 
 tmp: 0
-
-get_local: ; offset in ac
-addd fp
-pshi
-pop
-retn
-
-set_local: ; value on stack, offset in ac
-addd fp
-insp 1
-popi
-desp 2
-retn
 
 c1: 1
 
@@ -108,4 +98,17 @@ lodl 1
 jnze or_true
 lodl 2
 or_true:
+retn
+
+print:
+lodl 1
+pshi
+pop
+jzer print_end
+stod 4094
+lodl 1
+addd c1
+stol 1
+jump print
+print_end:
 retn

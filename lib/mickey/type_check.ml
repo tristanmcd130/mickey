@@ -15,6 +15,8 @@ let rec type_check type_env = function
 | SVar (n, t, v) ->
   assert_type type_env v t;
   Env.add type_env n t
+| SSig (n, t) -> Env.add type_env n t
+| SImport _ -> failwith "import still present even after preprocessing"
 and type_of type_env = function
 | Exp.EInt _ -> Type.TInt
 | ECall (n, a) ->

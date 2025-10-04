@@ -7,7 +7,7 @@ type t = {
   write_callbacks: (int, t -> unit) Hashtbl.t;
 }
 
-let create ?(read_callbacks = Hashtbl.create 0) ?(write_callbacks = Hashtbl.create 0) program = {
+let create ?(read_callbacks = []) ?(write_callbacks = []) program = {
   ac = 0;
   pc = 0;
   sp = 3968;
@@ -16,8 +16,8 @@ let create ?(read_callbacks = Hashtbl.create 0) ?(write_callbacks = Hashtbl.crea
       failwith "Program too big"
     else
       Bytes.extend program 0 (8192 - Bytes.length program);
-  read_callbacks;
-  write_callbacks;
+  read_callbacks = read_callbacks |> List.to_seq |> Hashtbl.of_seq;
+  write_callbacks = write_callbacks |> List.to_seq |> Hashtbl.of_seq;
 }
 let read state addr =
   (* Printf.printf "READ %x\n" addr; *)
@@ -121,7 +121,7 @@ let debug state =
         let addr = Stack.pop stack in
         let value = Stack.pop stack in
         write state addr value
-      | "." -> Printf.printf "%d\n" (Stack.pop stack - 32768)
+      | "." -> Printf.printf "%d\n" (let x = Stack.pop stack in if x > 32767 then x - 65536 else x)
       | "c" -> running := true
       | "q" -> exit 0
       | i -> Stack.push (int_of_string i) stack) commands;

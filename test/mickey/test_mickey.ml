@@ -7,7 +7,7 @@ open Simulator
 let prelude_obj = In_channel.with_open_bin "../../prelude.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
 let heap_obj = In_channel.with_open_bin "../../heap.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
 let make_test value code _ =
-  let ast = Lexing.from_string code |> Parser.program Lexer.read in
+  let ast = Lexing.from_string code |> Parser.program Lexer.read |> Preprocess.preprocess in
   let type_env = Env.create None [] in
   Type_check.type_check type_env ast;
   let program = Program.create () in
@@ -16,10 +16,10 @@ let make_test value code _ =
   let obj = Program.to_string program |> Lexing.from_string |> Assembler.Parser.program Assembler.Lexer.read |> Assembler.Assemble.assemble in
   let state = State.create (Link.link [prelude_obj; obj; heap_obj]) in
   State.run state;
-  assert_equal value (if state.ac < 32768 then state.ac else state.ac - 65536) ~printer: (fun x -> Printf.sprintf "%d" x)
+  assert_equal value (if state.ac > 32767 then state.ac - 65536 else state.ac) ~printer: (fun x -> Printf.sprintf "%d" x)
 let make_error_test msg code _ =
   assert_raises (Failure msg) (fun _ ->
-    let ast = Lexing.from_string code |> Parser.program Lexer.read in
+    let ast = Lexing.from_string code |> Parser.program Lexer.read |> Preprocess.preprocess in
     let type_env = Env.create None [] in
     Type_check.type_check type_env ast;
     let program = Program.create () in
@@ -53,8 +53,8 @@ let tests = "mickey tests" >::: [
   "equal polymorphism" >:: make_test 0 "fun main(): int {(true == false) as int}";
   "not equal" >:: make_test 0 "fun main(): int {(1 != 1) as int}";
   "greater than" >:: make_test 0 "fun main(): int {(1 > 2) as int}";
-  "less than" >:: make_test 1 "fun main(): int {(1 < 2) as int}";
-  "greater than or eqal" >:: make_test 0 "fun main(): int {(1 >= 2) as int}";
+  "less than" >:: make_test 1 "fun main(): int {(-3 < -2) as int}";
+  "greater than or equal" >:: make_test 1 "fun main(): int {(1 >= -2) as int}";
   "less than or equal" >:: make_test 1 "fun main(): int {(1 <= 2) as int}";
   "mul/compare precedence" >:: make_test 1 "fun main(): int {(5 * 2 >= 5) as int}";
   "and" >:: make_test 1 "fun main(): int {(true and true) as int}";
@@ -78,5 +78,7 @@ let tests = "mickey tests" >::: [
   "as type checking" >:: make_error_test "Expected a value of type int, but received one of type bool" "fun main(): int {(true + ()) as int}";
   "deref nonpointer" >:: make_error_test "Not a pointer, cannot be dereferenced" "fun main(): int {!5}";
   "address of" >:: make_test 999 "fun main(): int {var x: int = 0; @x <- 999; !@x}";
+  "if with no else" >:: make_test 1 "fun main(): int {var x: int = 1; if(false) x = 5; x}";
+  "var redefinition" >:: make_error_test "x is already defined" "fun main(): int {var x: int = 1; var x: int = 2; x}";
 ]
 let _ = run_test_tt_main tests

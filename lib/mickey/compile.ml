@@ -1,5 +1,5 @@
 let rec compile program env = function
-| Stmt.SProgram [] -> ()
+| Stmt.SProgram [] | SSig _ -> ()
 | SProgram (s :: ss) ->
   compile program env s;
   compile program env (SProgram ss)
@@ -29,6 +29,7 @@ let rec compile program env = function
   | EInt i -> Program.add_constant program n (CInt i)
   | EString s -> Program.add_constant program n (CString s)
   | _ -> failwith "Invalid global initializer")
+| SImport _ -> failwith "import still present even after preprocessing... and it's also not caught by type checking?"
 and compile_exp program env = function
 | Exp.EInt i -> Program.add_instructions program [ILoco (Int i)]
 | ECall (n, a) ->
@@ -40,7 +41,7 @@ and compile_exp program env = function
 | EVar n ->
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [ILodd (Label n)]
-  | Some i -> [ILoco (Int i); ICall (Label "get_local")])
+  | Some i -> [ILoco (Int i); IAddd (Label "fp"); IPshi; IPop])
 | EUnary (UNeg, r) ->
   compile_exp program env r;
   Program.add_instructions program [
@@ -98,7 +99,7 @@ and compile_exp program env = function
   compile_exp program env v;
   Program.add_instructions program (match Env.find_opt env n with
   | None -> [IStod (Label n)]
-  | Some i -> [IPush; ILoco (Int i); ICall (Label "set_local"); IInsp 1])
+  | Some i -> [IPush; ILoco (Int i); IAddd (Label "fp"); IPopi])
 | EBreak e ->
   compile_exp program env e;
   Program.add_instructions program [IHalt]

@@ -1,0 +1,21 @@
+import "math.mks"
+
+fun abs(x: int): int {
+	if(x < 0)
+		-x
+	else
+		x
+}
+
+fun divide(x: int, y: int): int {
+	var abs_x: int = abs(x);
+	var abs_y: int = abs(y);
+	var result: int = 0;
+	while(abs_x >= abs_y) {
+		abs_x = abs_x - abs_y;
+		result = result + 1
+	};
+	if((x < 0) != (y < 0))
+		result = -result;
+	result
+}

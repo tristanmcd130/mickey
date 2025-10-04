@@ -4,7 +4,10 @@ type 'a t = {
 }
 
 let create parent bindings = {parent; bindings = bindings |> List.to_seq |> Hashtbl.of_seq}
-let add env name value = Hashtbl.replace env.bindings name value
+let add env name value =
+  match Hashtbl.find_opt env.bindings name with
+  | Some v when v <> value -> failwith ("Cannot redefine " ^ name ^ " inconsistently with its previous definition")
+  | _ -> Hashtbl.replace env.bindings name value
 let rec find_opt env name =
    match Hashtbl.find_opt env.bindings name with
   | None ->
