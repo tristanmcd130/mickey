@@ -112,3 +112,32 @@ stol 1
 jump print
 print_end:
 retn
+
+c9: 9
+
+readchar:
+lodd 4093
+subd c9
+jzer readchar
+lodd 4092
+; stod 4094
+retn
+
+c10: 10
+
+readline:
+call readchar
+subd c10
+jzer readline_end
+addd c10
+push
+lodl 2
+popi
+addd c1
+stol 1
+jump readline
+readline_end:
+push
+lodl 2
+popi
+retn

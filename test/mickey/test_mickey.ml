@@ -6,8 +6,9 @@ open Simulator
 
 let prelude_obj = In_channel.with_open_bin "../../prelude.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
 let heap_obj = In_channel.with_open_bin "../../heap.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
-let make_test value code _ =
-  let ast = Lexing.from_string code |> Parser.program Lexer.read |> Preprocess.preprocess in
+let run code =
+  let ast = Lexing.from_string code |> Parser.program Lexer.read in
+  let ast = Stmt.SProgram [SImport "../../prelude.mks"; ast] |> Preprocess.preprocess in
   let type_env = Env.create None [] in
   Type_check.type_check type_env ast;
   let program = Program.create () in
@@ -16,18 +17,12 @@ let make_test value code _ =
   let obj = Program.to_string program |> Lexing.from_string |> Assembler.Parser.program Assembler.Lexer.read |> Assembler.Assemble.assemble in
   let state = State.create (Link.link [prelude_obj; obj; heap_obj]) in
   State.run state;
+  state
+let make_test value code _ =
+  let state = run code in
   assert_equal value (if state.ac > 32767 then state.ac - 65536 else state.ac) ~printer: (fun x -> Printf.sprintf "%d" x)
 let make_error_test msg code _ =
-  assert_raises (Failure msg) (fun _ ->
-    let ast = Lexing.from_string code |> Parser.program Lexer.read |> Preprocess.preprocess in
-    let type_env = Env.create None [] in
-    Type_check.type_check type_env ast;
-    let program = Program.create () in
-    let env = Env.create None [] in
-    Compile.compile program env ast;
-    let obj = Program.to_string program |> Lexing.from_string |> Assembler.Parser.program Assembler.Lexer.read |> Assembler.Assemble.assemble in
-    let state = State.create (Link.link [prelude_obj; obj; heap_obj]) in
-    State.run state)
+  assert_raises (Failure msg) (fun _ -> run code)
 let tests = "mickey tests" >::: [
   "int" >:: make_test 5 "fun main(): int {5}";
   "int bigger than 4095" >:: make_test 10001 "fun main(): int {10001}";
@@ -79,6 +74,8 @@ let tests = "mickey tests" >::: [
   "deref nonpointer" >:: make_error_test "Not a pointer, cannot be dereferenced" "fun main(): int {!5}";
   "address of" >:: make_test 999 "fun main(): int {var x: int = 0; @x <- 999; !@x}";
   "if with no else" >:: make_test 1 "fun main(): int {var x: int = 1; if(false) x = 5; x}";
-  "var redefinition" >:: make_error_test "x is already defined" "fun main(): int {var x: int = 1; var x: int = 2; x}";
+  (* TODO: figure out how to add tests for import and sig *)
+  "sig" >:: make_error_test "Cannot redefine main inconsistently with its previous definition" "sig main(int): unit\nfun main(): int {-5}";
+  "sig variables" >:: make_test 5 "sig x: int\nvar x: int = 5\nfun main(): int {x}";
 ]
 let _ = run_test_tt_main tests

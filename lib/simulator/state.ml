@@ -3,8 +3,8 @@ type t = {
   mutable pc: int;
   mutable sp: int;
   memory: Bytes.t;
-  read_callbacks: (int, t -> unit) Hashtbl.t;
-  write_callbacks: (int, t -> unit) Hashtbl.t;
+  read_callbacks: (int, t -> int) Hashtbl.t;
+  write_callbacks: (int, t -> int -> unit) Hashtbl.t;
 }
 
 let create ?(read_callbacks = []) ?(write_callbacks = []) program = {
@@ -21,16 +21,14 @@ let create ?(read_callbacks = []) ?(write_callbacks = []) program = {
 }
 let read state addr =
   (* Printf.printf "READ %x\n" addr; *)
-  (match Hashtbl.find_opt state.read_callbacks addr with
-  | None -> ()
-  | Some c -> c state);
-  Bytes.get_uint16_be state.memory (addr * 2)
+  match Hashtbl.find_opt state.read_callbacks addr with
+  | None -> Bytes.get_uint16_be state.memory (addr * 2)
+  | Some c -> c state
 let write state addr value =
   (* Printf.printf "WRITE %x %x\n" addr value; *)
-  Bytes.set_uint16_be state.memory (addr * 2) value;
   match Hashtbl.find_opt state.write_callbacks addr with
-  | None -> ()
-  | Some c -> c state
+  | None -> Bytes.set_uint16_be state.memory (addr * 2) value
+  | Some c -> c state value
 let (mod) x y =
   let result = x mod y in
   if result < 0 then
@@ -107,8 +105,9 @@ let run state =
   done
 let debug state =
   let stack = Stack.create () in
-  let running = ref false in
-  while not !running do
+  let debugging = ref true in
+  let quit = ref false in
+  while !debugging do
     try
       print_string "> ";
       let commands = read_line () |> String.split_on_char ' ' in
@@ -122,11 +121,14 @@ let debug state =
         let value = Stack.pop stack in
         write state addr value
       | "." -> Printf.printf "%d\n" (let x = Stack.pop stack in if x > 32767 then x - 65536 else x)
-      | "c" -> running := true
-      | "q" -> exit 0
+      | "c" -> debugging := false
+      | "q" ->
+        debugging := false;
+        quit := true
       | i -> Stack.push (int_of_string i) stack) commands;
       Stack.iter (Printf.printf "%d ") stack;
       print_newline ()
     with
     | e -> print_endline ("Error: " ^ Printexc.to_string e)
-  done
+  done;
+  not !quit

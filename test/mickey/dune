@@ -3,4 +3,5 @@
  (libraries ounit2 common mickey assembler linker simulator)
  (deps
   ../../prelude.obj
+  ../../prelude.mks
   ../../heap.obj))

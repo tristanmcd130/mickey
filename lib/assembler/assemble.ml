@@ -47,6 +47,6 @@ let assemble instructions: Object.t =
 			failwith (Printf.sprintf "Label %s already defined at %x" l (Hashtbl.find labels l));
 		Hashtbl.replace labels l (Buffer.length buffer / 2)
 	| IInt i -> Buffer.add_uint16_be buffer i
-	| IString s -> String.iter (fun c -> Buffer.add_uint16_be buffer (Char.code c)) s in
+	| IString s -> String.iter (fun c -> Buffer.add_uint16_be buffer (Char.code c)) (s ^ "\x00") in
 	List.iter assemble_instruction instructions;
 	{labels; relocations; code = Buffer.to_bytes buffer}

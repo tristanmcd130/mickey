@@ -1,5 +1,9 @@
-import "math.mks"
-
 fun main(): int {
-	divide(4420, -21)
+	var buffer: string = "                              ";
+	print("What is your name? ");
+	readline(buffer);
+	print("Hello, ");
+	print(buffer);
+	print("!\n");
+	0
 }

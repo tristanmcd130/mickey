@@ -45,7 +45,7 @@ let tests = "assembler tests" >::: [
   "halt" >:: make_test [] [] [0xff00] "halt";
   "consecutive labels" >:: make_test [("a", 1); ("b", 1)] [] [0x0000] "lodd 0\na:\nb:";
   "int" >:: make_test [] [] [0x0064; 0x00c8] "100 200";
-  "string" >:: make_test [] [] ("hello world\n" |> String.to_seq |> Seq.map Char.code |> List.of_seq) "\"hello world\\n\"";
+  "string" >:: make_test [] [] ("hello world\n\x00" |> String.to_seq |> Seq.map Char.code |> List.of_seq) "\"hello world\\n\"";
   "label pointing to int" >:: make_test [("a", 0)] [] [0x000b] "a: 11";
   "label redefinition" >:: make_error_test "Label a already defined at 0" "a: 10 a: 11";
 ]
