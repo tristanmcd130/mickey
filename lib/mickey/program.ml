@@ -6,6 +6,7 @@ type t = {
 and constant =
 | CInt of int
 | CString of string
+| CChar of string
 
 let create () = {instructions = Dynarray.create (); constants = Hashtbl.create 10; label_num = 0}
 let rec add_instruction program = function
@@ -27,6 +28,7 @@ let new_label program =
 let constant_to_string = function
 | CInt i -> string_of_int i
 | CString s -> "\"" ^ s ^ "\""
+| CChar c -> "'" ^ c ^ "'"
 let to_string program =
   (Hashtbl.to_seq program.constants |> Seq.map (fun (k, v) -> Printf.sprintf "%s: %s\n" k (constant_to_string v)) |> List.of_seq |> String.concat "")
   ^ (Dynarray.map Common.Instruction.to_string program.instructions |> Dynarray.to_list |> String.concat "\n")

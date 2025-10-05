@@ -48,5 +48,8 @@ let tests = "assembler tests" >::: [
   "string" >:: make_test [] [] ("hello world\n\x00" |> String.to_seq |> Seq.map Char.code |> List.of_seq) "\"hello world\\n\"";
   "label pointing to int" >:: make_test [("a", 0)] [] [0x000b] "a: 11";
   "label redefinition" >:: make_error_test "Label a already defined at 0" "a: 10 a: 11";
+  "char" >:: make_test [] [] [Char.code 't'] "'t'";
+  "escaped char" >:: make_test [] [] [Char.code '\t'] "'\\t'";
+  "backslash" >:: make_test [] [] [Char.code '\\'] "'\\\\'";
 ]
 let _ = run_test_tt_main tests

@@ -26,8 +26,10 @@ type t =
 | ILabel of string
 | IInt of int
 | IString of string
+| IChar of string
 and arg =
 | Int of int
 | Label of string
+| Char of string
 
 val to_string: t -> string

@@ -1,6 +1,9 @@
-sig print(string): unit
-sig readchar(): int
-sig readline(string, int): unit
-sig abort(string): unit
+sig abs(int): int
+sig chr(int): char
+sig code(char): int
+sig print(char ptr): unit
+sig readchar(): char
+sig readline(char ptr, int): unit
+sig abort(char ptr): unit
 sig alloc(int): int ptr
 sig free(int ptr): unit

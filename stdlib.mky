@@ -1,35 +1,74 @@
 # stdlib.mks already included due to mickey/main.ml
 
-fun print(msg: string): unit {
-	var x: int ptr = msg as int ptr;
-	while(!x != 0) {
-		!(4094 as int ptr) = !x;
-		x = (x as int + 1) as int ptr
+fun abs(x: int): int {
+	if(x < 0)
+		-x
+	else
+		x
+}
+
+fun mul(x: int, y: int): int {
+	var result: int = 0;
+	while(y != 0) {
+		result = result + x;
+		y = y - 1
+	};
+	result
+}
+
+fun div(x: int, y: int): int {
+	var abs_x: int = abs(x);
+	var abs_y: int = abs(y);
+	var result: int = 0;
+	if(y == 0)
+		abort("Cannot divide by 0");
+	while(abs_x >= abs_y) {
+		abs_x = abs_x - abs_y;
+		result = result + 1
+	};
+	if((x < 0) != (y < 0))
+		result = -result;
+	result
+}
+
+fun chr(x: int): char {
+	x as char
+}
+
+fun code(x: char): int {
+	x as int
+}
+
+fun print(msg: char ptr): unit {
+	var x: char ptr = msg;
+	while(!x != chr(0)) {
+		!(4094 as char ptr) = !x;
+		x = (x as int + 1) as char ptr
 	}
 }
 
-fun readchar(): int {
-	while(!(4093 as int ptr) != 10) ();
-	!(4092 as int ptr) 
+fun readchar(): char {
+	while(!(4093 as char ptr) != '\n') ();
+	!(4092 as char ptr) 
 }
 
-fun readline(buffer: string, limit: int): unit {
+fun readline(buffer: char ptr, limit: int): unit {
 	var i: int = 0;
-	var c: int = 0;
+	var c: char = chr(0);
 	var done: bool = false;
-	while(i < limit and not done) {
+	while(i < limit - 1 and not done) {
 		c = readchar();
-		if(c == 10)
+		if(c == '\n')
 			done = true
 		else {
-			!((buffer as int + i) as int ptr) = c;
+			buffer[i] = c;
 			i = i + 1
 		}
 	};
-	!((buffer as int + i) as int ptr) = 0
+	buffer[i] = chr(0)
 }
 
-fun abort(msg: string): unit {
+fun abort(msg: char ptr): unit {
 	print("Error: ");
 	print(msg);
 	print("\n");

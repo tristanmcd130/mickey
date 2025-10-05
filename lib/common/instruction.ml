@@ -26,13 +26,16 @@ type t =
 | ILabel of string
 | IInt of int
 | IString of string
+| IChar of string
 and arg =
 | Int of int
 | Label of string
+| Char of string
 
 let arg_to_string = function
 | Int i -> string_of_int i
 | Label l -> l
+| Char c -> "'" ^ c ^ "'"
 let to_string = function
 | ILodd a -> "lodd " ^ arg_to_string a
 | IStod a -> "stod " ^ arg_to_string a
@@ -60,4 +63,5 @@ let to_string = function
 | IHalt -> "halt"
 | ILabel l -> l ^ ":"
 | IInt i -> string_of_int i
-| IString s -> Printf.sprintf "\"%s\"" (String.escaped s)
+| IString s -> Printf.sprintf "\"%s\"" s
+| IChar c -> Printf.sprintf "'%s'" c

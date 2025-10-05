@@ -16,42 +16,6 @@ tmp: 0
 c1: 1
 c2: 2
 
-mul:
-desp 1
-loco 0
-stol 0
-mul_cond:
-lodl 2
-jzer mul_end
-subd c1
-stol 2
-lodl 0
-addl 3
-stol 0
-jump mul_cond
-mul_end:
-lodl 0
-insp 1
-retn
-
-div:
-desp 1
-loco 0
-stol 0
-div_cond:
-lodl 2
-subl 3
-jneg div_end
-stol 2
-lodl 0
-addd c1
-stol 0
-jump div_cond
-div_end:
-lodl 0
-insp 1
-retn
-
 eq:
 lodl 1
 subl 2

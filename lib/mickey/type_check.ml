@@ -78,12 +78,26 @@ and type_of type_env = function
   t
 | EAddrOf n -> TPtr (type_of type_env (EVar n))
 | EUnit -> TUnit
-| EString _ -> TString
+| EString _ -> TPtr TChar
 | EBlock [] -> TUnit
 | EBlock [e] -> type_of type_env e
 | EBlock (e :: es) ->
   type_of type_env e |> ignore;
   type_of type_env (EBlock es)
+| EIndex (e, i) ->
+  (match type_of type_env e with
+  | TPtr t ->
+    assert_type type_env i TInt;
+    t
+  | _ -> failwith "Not a pointer, cannot be dereferenced")
+| EIndexSet (e, i, v) ->
+  (match type_of type_env e with
+  | TPtr t ->
+    assert_type type_env i TInt;
+    assert_type type_env v t;
+    TUnit
+  | _ -> failwith "Not a pointer, cannot be dereferenced")
+| EChar _ -> TChar
 and assert_type type_env exp type' =
   let actual_type = type_of type_env exp in
   if actual_type <> type' then

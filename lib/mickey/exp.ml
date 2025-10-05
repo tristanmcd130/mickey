@@ -15,6 +15,9 @@ type t =
 | EUnit
 | EString of string
 | EBlock of t list
+| EIndex of t * t
+| EIndexSet of t * t * t
+| EChar of string (* string since it's unescaped; the assembler will escape it *)
 and unary_op =
 | UNeg
 | UNot

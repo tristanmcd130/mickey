@@ -45,14 +45,17 @@ rule read = parse
 | '!'		{BANG}
 | "as"		{AS}
 | '@'		{AT}
-| "string"	{TSTRING}
 | '{'		{LBRACE}
 | '}'		{RBRACE}
 | "import"	{IMPORT}
 | "sig"		{SIG}
+| '['		{LBRACKET}
+| ']'		{RBRACKET}
+| "char"	{TCHAR}
 | id		{ID (lexeme lexbuf)}
 | '#'		{skip_comment lexbuf}
 | '"'		{read_string (Buffer.create 10) lexbuf}
+| '''		{read_char lexbuf}
 | _			{failwith ("Unexpected character: " ^ lexeme lexbuf)}
 | eof		{EOF}
 and skip_comment = parse
@@ -64,3 +67,12 @@ and read_string buf = parse
 | "\\\""	{Buffer.add_string buf "\\\""; read_string buf lexbuf}
 | _			{Buffer.add_string buf (lexeme lexbuf); read_string buf lexbuf}
 | eof		{failwith "Unterminated string"}
+and read_char = parse
+| "\\\\"	{end_char "\\\\" lexbuf}
+| "\\n"		{end_char "\\n" lexbuf}
+| "\\t"		{end_char "\\t" lexbuf}
+| _			{end_char (lexeme lexbuf) lexbuf}
+| eof		{failwith "Unterminated character"}
+and end_char char = parse
+| '''	{CHAR char}
+| _		{failwith "Unterminated character"}

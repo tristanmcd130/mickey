@@ -1,5 +1,5 @@
 fun main(): int {
-	var buffer: string = alloc(80) as string;
+	var buffer: char ptr = alloc(80) as char ptr;
 	print("What is your name? ");
 	readline(buffer, 80);
 	print("Hello, ");

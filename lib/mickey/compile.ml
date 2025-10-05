@@ -142,3 +142,25 @@ and compile_exp program env = function
 | EBlock (e :: es) ->
   compile_exp program env e;
   compile_exp program env (EBlock es);
+| EIndex (e, i) ->
+  compile_exp program env e;
+  Program.add_instructions program [IPush];
+  compile_exp program env i;
+  Program.add_instructions program [
+    IAddl 0;
+    IInsp 1;
+    IPshi;
+    IPop
+  ]
+| EIndexSet (e, i, v) ->
+  compile_exp program env v;
+  Program.add_instructions program [IPush];
+  compile_exp program env e;
+  Program.add_instructions program [IPush];
+  compile_exp program env i;
+  Program.add_instructions program [
+    IAddl 0;
+    IInsp 1;
+    IPopi
+  ]
+| EChar c -> Program.add_instructions program [ILoco (Char c)]

@@ -26,6 +26,7 @@
 %token <string> LABEL
 %token <int> INT
 %token <string> STRING
+%token <string> CHAR
 %token EOF
 %start <Common.Instruction.t list> program
 %%
@@ -60,7 +61,9 @@ instruction:
 | l = LABEL; COLON	{ILabel l}
 | i = INT			{IInt i}
 | s = STRING		{IString s}
+| c = CHAR			{IChar c}
 
 arg:
 | i = INT	{Int i}
 | l = LABEL	{Label l}
+| c = CHAR	{Char c}

@@ -41,8 +41,9 @@ let tests = "mickey tests" >::: [
   "multiply negative 1st arg" >:: make_test (-45) "fun main(): int {-9 * 5}";
   "multiply negative 2nd arg" >:: make_test (-903) "fun main(): int {43 * -21}";
   "divide" >:: make_test 20 "fun main(): int {440 / 21}";
-  (* "divide negative 1st arg" >:: make_test (-20) "fun main(): int {-440 / 21}"; *)
-  (* "divide negative 2nd arg" >:: make_test (-20) "fun main(): int {440 / -21}"; *)
+  "divide negative 1st arg" >:: make_test (-20) "fun main(): int {-440 / 21}";
+  "divide negative 2nd arg" >:: make_test (-20) "fun main(): int {440 / -21}";
+  "divide negative both args" >:: make_test 20 "fun main(): int {-440 / -21}";
   "add/mul precedence" >:: make_test 7 "fun main(): int {1 + 2 * 3}";
   "parentheses" >:: make_test 9 "fun main(): int {(1 + 2) * 3}";
   "equal" >:: make_test 1 "fun main(): int {(1 == 1) as int}";
@@ -79,5 +80,7 @@ let tests = "mickey tests" >::: [
   "sig" >:: make_error_test "Cannot redefine main inconsistently with its previous definition" "sig main(int): unit\nfun main(): int {-5}";
   "sig variables" >:: make_test 5 "sig x: int\nvar x: int = 5\nfun main(): int {x}";
   "double free" >:: make_test 0 "fun main(): int {var x: int ptr = alloc(1); free(x); free(x); 5}";
+  "index" >:: make_test (Char.code 'b') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; code(x[4])}";
+  "index set" >:: make_test (Char.code 'c') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] = 'c'; code(x[4])}";
 ]
 let _ = run_test_tt_main tests

@@ -6,6 +6,7 @@ type t = {
 and constant =
 | CInt of int
 | CString of string
+| CChar of string
 
 val create: unit -> t
 val add_instructions: t -> Common.Instruction.t list -> unit

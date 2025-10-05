@@ -11,7 +11,8 @@ let assemble instructions: Object.t =
 		i
 	| Label l ->
 		Hashtbl.replace relocations (Buffer.length buffer / 2) l;
-		0 in
+		0
+	| Char c -> (c |> Scanf.unescaped).[0] |> Char.code in
 	let local_arg int =
 		if int < 0 || int > 255 then
 			failwith "Argument must be in 0-255"
@@ -47,6 +48,7 @@ let assemble instructions: Object.t =
 			failwith (Printf.sprintf "Label %s already defined at %x" l (Hashtbl.find labels l));
 		Hashtbl.replace labels l (Buffer.length buffer / 2)
 	| IInt i -> Buffer.add_uint16_be buffer i
-	| IString s -> String.iter (fun c -> Buffer.add_uint16_be buffer (Char.code c)) (s ^ "\x00") in
+	| IString s -> String.iter (fun c -> Buffer.add_uint16_be buffer (Char.code c)) (Scanf.unescaped s ^ "\x00")
+	| IChar c -> Buffer.add_uint16_be buffer ((Scanf.unescaped c).[0] |> Char.code) in
 	List.iter assemble_instruction instructions;
 	{labels; relocations; code = Buffer.to_bytes buffer}
