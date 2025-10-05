@@ -1,9 +1,10 @@
 fun main(): int {
-	var buffer: string = "                              ";
+	var buffer: string = alloc(80) as string;
 	print("What is your name? ");
-	readline(buffer);
+	readline(buffer, 80);
 	print("Hello, ");
 	print(buffer);
 	print("!\n");
+	free(buffer as int ptr);
 	0
 }

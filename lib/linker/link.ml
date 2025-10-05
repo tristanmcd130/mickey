@@ -1,6 +1,7 @@
 open Common
 
-(* make the replacements you can based on what's available, leave the rest alone *)
+(* make the replacements you can based on what's available, leave the rest alone
+since there are no (explicitly) local labels, some later object using a label from a previous object that was intended as local is possible, but mickey's type checker should prevent that *)
 let patch (object': Object.t): Object.t = 
   let bytes = object'.code in
   let relocations_copy = Hashtbl.copy object'.relocations in
@@ -18,7 +19,7 @@ let link objects =
   let link2 (obj1: Object.t) (obj2: Object.t): Object.t = {
     labels =
       (let table = obj1.labels in
-      Hashtbl.iter (fun k v -> Hashtbl.replace table k (v + Bytes.length obj1.code / 2)) obj2.labels; (* add offsets based on size of 1st object *)
+      Hashtbl.iter (fun k v -> Hashtbl.replace table k (v + Bytes.length obj1.code / 2)) obj2.labels; (* add offsets based on size of 1st object. this also means old labels with the same name get overwritten, which means local labels are possible *)
       table);
     relocations =
       (let table = obj1.relocations in

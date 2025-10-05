@@ -1,14 +1,20 @@
 loco 8
 stod 4093
 stod 4095
+loco heap
+stod heap_start
+loco 3968
+subd heap_start
+subd c2
+stod heap
 call main
 halt
 
+heap_start: 0
 fp: 0
-
 tmp: 0
-
 c1: 1
+c2: 2
 
 mul:
 desp 1
@@ -98,46 +104,4 @@ lodl 1
 jnze or_true
 lodl 2
 or_true:
-retn
-
-print:
-lodl 1
-pshi
-pop
-jzer print_end
-stod 4094
-lodl 1
-addd c1
-stol 1
-jump print
-print_end:
-retn
-
-c9: 9
-
-readchar:
-lodd 4093
-subd c9
-jzer readchar
-lodd 4092
-; stod 4094
-retn
-
-c10: 10
-
-readline:
-call readchar
-subd c10
-jzer readline_end
-addd c10
-push
-lodl 2
-popi
-addd c1
-stol 1
-jump readline
-readline_end:
-push
-lodl 2
-popi
 retn

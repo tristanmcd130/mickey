@@ -53,11 +53,11 @@ and type_of type_env = function
   assert_type type_env l TBool;
   assert_type type_env r TBool;
   TBool
-| EBinary (l, BPtrSet, r) ->
-  let l_type = match type_of type_env l with
+| EPtrSet (e, v) ->
+  let e_type = match type_of type_env e with
   | TPtr t -> t
   | _ -> failwith "Not a pointer, cannot be assigned through" in
-  assert_type type_env r l_type;
+  assert_type type_env v e_type;
   TUnit
 | ESet (n, v) ->
   assert_type type_env v (Env.find type_env n);

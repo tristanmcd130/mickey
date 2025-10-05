@@ -1,0 +1,101 @@
+# stdlib.mks already included due to mickey/main.ml
+
+fun print(msg: string): unit {
+	var x: int ptr = msg as int ptr;
+	while(!x != 0) {
+		!(4094 as int ptr) = !x;
+		x = (x as int + 1) as int ptr
+	}
+}
+
+fun readchar(): int {
+	while(!(4093 as int ptr) != 10) ();
+	!(4092 as int ptr) 
+}
+
+fun readline(buffer: string, limit: int): unit {
+	var i: int = 0;
+	var c: int = 0;
+	var done: bool = false;
+	while(i < limit and not done) {
+		c = readchar();
+		if(c == 10)
+			done = true
+		else {
+			!((buffer as int + i) as int ptr) = c;
+			i = i + 1
+		}
+	};
+	!((buffer as int + i) as int ptr) = 0
+}
+
+fun abort(msg: string): unit {
+	print("Error: ");
+	print(msg);
+	print("\n");
+	break(())
+}
+
+sig heap_start: int ptr
+
+# struct block {
+# 	bool inUse; // make inUse the top bit of size, then you can test for negative
+# 	int size; // really more like capacity
+# 	block *next;
+# 	int data[size];
+# }
+# 
+# block *firstBlock = &{false, 2048, NULL, {0}};
+# 
+# block *alloc(int size) {
+# 	for(block *b = firstBlock; b != NULL; b = b->next) {
+# 		if(!b->inUse && b->size >= size) {
+# 			if(b->size >= 4) {
+# 				// only split if its worth it
+# 				//         SNDDDD
+# 				// becomes SNDSND
+# 				b[2 + size] = false + (b->size - 2); // not in use, 2 words lost due to new inUse/size and next
+# 				b[3 + size] = NULL;
+# 				b->size = size;
+# 				b->next = b + 2 + size;
+# 			}
+# 			b->inUse = true;
+# 			return b;
+# 		}
+# 	}
+# 	return NULL;
+# }
+
+fun alloc(size: int): int ptr {
+	var block: int ptr = heap_start;
+	var found: bool = false;
+	while(not found and block != 0 as int ptr) {
+		if(!block >= size) {
+			# print("FOUND SUITABLE BLOCK\n");
+			if(!block >= 4) {
+				# print("SPLITTING BLOCK\n");
+				!((block as int + 2 + size) as int ptr) = !block - 2 - size;
+				!((block as int + 3 + size) as int ptr) = 0;
+				!block = size;
+				!((block as int + 1) as int ptr) = block as int + 2 + size
+			};
+			!block = !block + -32768;
+			found = true
+		};
+		if(not found) {
+			# print("BLOCK NOT FOUND\n");
+			block = !((block as int + 1) as int ptr ptr)
+		}
+	};
+	if(block == 0 as int ptr)
+		abort("Unable to allocate block");
+	(block as int + 2) as int ptr
+}
+
+fun free(block: int ptr): unit {
+	if(!((block as int - 2) as int ptr) > 0)
+		abort("Block already freed")
+	else
+		!((block as int - 2) as int ptr) = !((block as int - 2) as int ptr) - -32768
+		# try consolidating here?
+}

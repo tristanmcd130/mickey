@@ -1,0 +1,6 @@
+sig print(string): unit
+sig readchar(): int
+sig readline(string, int): unit
+sig abort(string): unit
+sig alloc(int): int ptr
+sig free(int ptr): unit

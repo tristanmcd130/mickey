@@ -1,8 +1,10 @@
 #!/bin/bash
 
 dune exec mickey $1 ${1%.*}.asm &&
+dune exec mickey stdlib.mky stdlib.asm &&
 dune exec assembler prelude.asm prelude.obj &&
-dune exec assembler heap.asm heap.obj &&
+dune exec assembler stdlib.asm stdlib.obj &&
 dune exec assembler ${1%.*}.asm ${1%.*}.obj &&
-dune exec linker prelude.obj ${1%.*}.obj heap.obj ${1%.*}.exe # &&
+dune exec assembler heap.asm heap.obj &&
+dune exec linker prelude.obj stdlib.obj ${1%.*}.obj heap.obj ${1%.*}.exe # &&
 # dune exec simulator ${1%.*}.exe

@@ -90,10 +90,10 @@ and compile_exp program env = function
 | EBinary (l, BGE, r) -> compile_exp program env (ECall ("ge", [l; r]))
 | EBinary (l, BAnd, r) -> compile_exp program env (ECall ("and", [l; r]))
 | EBinary (l, BOr, r) -> compile_exp program env (ECall ("or", [l; r]))
-| EBinary (l, BPtrSet, r) ->
-  compile_exp program env r;
+| EPtrSet (e, v) ->
+  compile_exp program env v;
   Program.add_instructions program [IPush];
-  compile_exp program env l;
+  compile_exp program env e;
   Program.add_instructions program [IPopi]
 | ESet (n, v) ->
   compile_exp program env v;

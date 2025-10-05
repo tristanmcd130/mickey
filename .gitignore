@@ -2,7 +2,7 @@ _build
 .vscode
 CompArch
 *.asm
-!prelude.obj
-!heap.obj
+!prelude.asm
+!heap.asm
 *.obj
 *.exe

@@ -5,6 +5,7 @@ type t =
 | EUnary of unary_op * t
 | EBinary of t * binary_op * t
 | ESet of string * t
+| EPtrSet of t * t
 | EBreak of t
 | EBool of bool
 | EIf of t * t * t
@@ -31,4 +32,3 @@ and binary_op =
 | BLE
 | BAnd
 | BOr
-| BPtrSet

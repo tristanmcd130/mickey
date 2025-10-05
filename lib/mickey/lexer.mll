@@ -43,7 +43,6 @@ rule read = parse
 | "while"	{WHILE}
 | "ptr"		{TPTR}
 | '!'		{BANG}
-| "<-"		{ARROW}
 | "as"		{AS}
 | '@'		{AT}
 | "string"	{TSTRING}

@@ -5,17 +5,18 @@ open Linker
 open Simulator
 
 let prelude_obj = In_channel.with_open_bin "../../prelude.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
+let stdlib_obj = In_channel.with_open_bin "../../stdlib.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
 let heap_obj = In_channel.with_open_bin "../../heap.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
 let run code =
   let ast = Lexing.from_string code |> Parser.program Lexer.read in
-  let ast = Stmt.SProgram [SImport "../../prelude.mks"; ast] |> Preprocess.preprocess in
+  let ast = Stmt.SProgram [SImport "../../stdlib.mks"; ast] |> Preprocess.preprocess in
   let type_env = Env.create None [] in
   Type_check.type_check type_env ast;
   let program = Program.create () in
   let env = Env.create None [] in
   Compile.compile program env ast;
   let obj = Program.to_string program |> Lexing.from_string |> Assembler.Parser.program Assembler.Lexer.read |> Assembler.Assemble.assemble in
-  let state = State.create (Link.link [prelude_obj; obj; heap_obj]) in
+  let state = State.create (Link.link [prelude_obj; stdlib_obj; obj; heap_obj]) in
   State.run state;
   state
 let make_test value code _ =
@@ -68,14 +69,15 @@ let tests = "mickey tests" >::: [
   "while" >:: make_test 4096 "fun main(): int {var x: int = 2; while(x < 4000) x = x * 2; x}";
   "type checking in block" >:: make_error_test "Expected a value of type int, but received one of type unit" "fun f(): unit {()}\nfun main(): int {var x: int = f(); x}";
   "as precedence" >:: make_test 1 "fun main(): int {not false as int}";
-  "pointer set" >:: make_test 419 "fun main(): int {0 as int ptr <- 419; !(0 as int ptr)}";
-  "pointer set nonpointer" >:: make_error_test "Not a pointer, cannot be assigned through" "fun main(): int {main <- 5}";
+  "pointer set" >:: make_test 419 "fun main(): int {!(0 as int ptr) = 419; !(0 as int ptr)}";
+  "pointer set nonpointer" >:: make_error_test "Not a pointer, cannot be assigned through" "fun main(): int {!main = 5}";
   "as type checking" >:: make_error_test "Expected a value of type int, but received one of type bool" "fun main(): int {(true + ()) as int}";
   "deref nonpointer" >:: make_error_test "Not a pointer, cannot be dereferenced" "fun main(): int {!5}";
-  "address of" >:: make_test 999 "fun main(): int {var x: int = 0; @x <- 999; !@x}";
+  "address of" >:: make_test 999 "fun main(): int {var x: int = 0; !@x = 999; !@x}";
   "if with no else" >:: make_test 1 "fun main(): int {var x: int = 1; if(false) x = 5; x}";
   (* TODO: figure out how to add tests for import and sig *)
   "sig" >:: make_error_test "Cannot redefine main inconsistently with its previous definition" "sig main(int): unit\nfun main(): int {-5}";
   "sig variables" >:: make_test 5 "sig x: int\nvar x: int = 5\nfun main(): int {x}";
+  "double free" >:: make_test 0 "fun main(): int {var x: int ptr = alloc(1); free(x); free(x); 5}";
 ]
 let _ = run_test_tt_main tests
