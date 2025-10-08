@@ -138,3 +138,18 @@ fun free(block: int ptr): unit {
 		!((block as int - 2) as int ptr) = !((block as int - 2) as int ptr) - -32768
 		# try consolidating here?
 }
+
+fun copy(src: int ptr, dst: int ptr, length: int): unit {
+	var i: int = 0;
+	while(i < length) {
+		dst[i] = src[i];
+		i = i + 1
+	}
+}
+
+fun strlen(str: char ptr): int {
+	var i: int = 0;
+	while(str[i] != chr(0))
+		i = i + 1;
+	i
+}

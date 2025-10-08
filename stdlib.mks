@@ -7,3 +7,5 @@ sig readline(char ptr, int): unit
 sig abort(char ptr): unit
 sig alloc(int): int ptr
 sig free(int ptr): unit
+sig copy(int ptr, int ptr, int): unit
+sig strlen(char ptr): int

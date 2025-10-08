@@ -82,5 +82,7 @@ let tests = "mickey tests" >::: [
   "double free" >:: make_test 0 "fun main(): int {var x: int ptr = alloc(1); free(x); free(x); 5}";
   "index" >:: make_test (Char.code 'b') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; code(x[4])}";
   "index set" >:: make_test (Char.code 'c') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] = 'c'; code(x[4])}";
+  "local string" >:: make_test (Char.code 'b') "fun f(x: int): char ptr {var s: char ptr = \"abcde\"; s[x] = '6'; if(x >= 4) s else {f(x + 1); s}} fun main(): int {code(f(0)[1])}";
+  "string length" >:: make_test 13 "fun main(): int {strlen(\"Hello, world!\")}";
 ]
 let _ = run_test_tt_main tests
