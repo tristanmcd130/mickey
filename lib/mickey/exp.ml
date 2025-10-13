@@ -30,6 +30,7 @@ and binary_op =
 | BSub
 | BMul
 | BDiv
+| BMod
 | BEQ
 | BNE
 | BGT

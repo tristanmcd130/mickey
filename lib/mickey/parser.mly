@@ -39,6 +39,7 @@
 %token TCHAR
 %token TYPE
 %token DOT
+%token PERCENT
 %token <bool> BOOL
 %token <int> INT
 %token <string> ID
@@ -48,7 +49,7 @@
 %left OR
 %left AND
 %left EQ NE LT GT LE GE
-%left PLUS MINUS
+%left PLUS MINUS PERCENT
 %left STAR SLASH
 %left AS
 %nonassoc NOT BANG
@@ -128,6 +129,7 @@ exp:
 | MINUS		{Exp.BSub}
 | STAR		{Exp.BMul}
 | SLASH		{Exp.BDiv}
+| PERCENT	{Exp.BMod}
 | EQ		{Exp.BEQ}
 | NE		{Exp.BNE}
 | GT		{Exp.BGT}

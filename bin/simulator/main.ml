@@ -29,12 +29,16 @@ let () =
           0);
     ]
     ~write_callbacks: [
-      (4093, fun _ value -> rcvr_on := value land 8 = 8);
+      (4093, fun _ value ->
+        rcvr_on := value land 8 = 8;
+        value);
       (4094, fun _ value ->
         if !xmtr_on then
-          ((* Printf.printf "CHAR PRINTED: %d\n" value; *)
-          value |> Char.chr |> print_char));
-      (4095, fun _ value -> xmtr_on := value land 8 = 8);
+          value |> Char.chr |> print_char;
+        value);
+      (4095, fun _ value ->
+        xmtr_on := value land 8 = 8;
+        value);
     ] in
   State.run state;
   while State.debug state do

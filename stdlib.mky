@@ -1,4 +1,4 @@
-# stdlib.mks already included due to mickey/main.ml
+// stdlib.mks already included due to mickey/main.ml
 
 fun abs(x: int): int {
 	if(x < 0)
@@ -31,20 +31,21 @@ fun div(x: int, y: int): int {
 	result
 }
 
-fun chr(x: int): char {
-	x as char
-}
-
-fun code(x: char): int {
-	x as int
+fun mod(x: int, y: int): int {
+	x - x/y * y
 }
 
 fun print(msg: char ptr): unit {
 	var x: char ptr = msg;
-	while(!x != chr(0)) {
+	while(!x != 0 as char) {
 		!(4094 as char ptr) = !x;
 		x = (x as int + 1) as char ptr
 	}
+}
+
+fun printline(msg: char ptr): unit {
+	print(msg);
+	!(4094 as char ptr) = '\n'
 }
 
 fun readchar(): char {
@@ -54,7 +55,7 @@ fun readchar(): char {
 
 fun readline(buffer: char ptr, limit: int): unit {
 	var i: int = 0;
-	var c: char = chr(0);
+	var c: char = 0 as char;
 	var done: bool = false;
 	while(i < limit - 1 and not done) {
 		c = readchar();
@@ -65,54 +66,86 @@ fun readline(buffer: char ptr, limit: int): unit {
 			i = i + 1
 		}
 	};
-	buffer[i] = chr(0)
+	buffer[i] = 0 as char
 }
 
 fun abort(msg: char ptr): unit {
 	print("Error: ");
-	print(msg);
-	print("\n");
+	printline(msg);
 	break(())
 }
 
 sig heap_start: int ptr
 
-# struct block {
-# 	bool inUse; // make inUse the top bit of size, then you can test for negative
-# 	int size; // really more like capacity
-# 	block *next;
-# 	int data[size];
-# }
-# 
-# block *firstBlock = &{false, 2048, NULL, {0}};
-# 
-# block *alloc(int size) {
-# 	for(block *b = firstBlock; b != NULL; b = b->next) {
-# 		if(!b->inUse && b->size >= size) {
-# 			if(b->size >= 4) {
-# 				// only split if its worth it
-# 				//         SNDDDD
-# 				// becomes SNDSND
-# 				b[2 + size] = false + (b->size - 2); // not in use, 2 words lost due to new inUse/size and next
-# 				b[3 + size] = NULL;
-# 				b->size = size;
-# 				b->next = b + 2 + size;
-# 			}
-# 			b->inUse = true;
-# 			return b;
-# 		}
-# 	}
-# 	return NULL;
-# }
+// struct block {
+// 	bool inUse; // make inUse the top bit of size, then you can test for negative
+// 	int size; // really more like capacity
+// 	block *next;
+// 	int data[size];
+// }
+// 
+// block *firstBlock = &{false, 2048, NULL, {0}};
+// 
+// block *alloc(int size) {
+// 	for(block *b = firstBlock; b != NULL; b = b->next) {
+// 		if(!b->inUse && b->size >= size) {
+// 			if(b->size >= 4) {
+// 				// only split if its worth it
+// 				//         SNDDDD
+// 				// becomes SNDSND
+// 				b[2 + size] = false + (b->size - 2); // not in use, 2 words lost due to new inUse/size and next
+// 				b[3 + size] = NULL;
+// 				b->size = size;
+// 				b->next = b + 2 + size;
+// 			}
+// 			b->inUse = true;
+// 			return b;
+// 		}
+// 	}
+// 	return NULL;
+// }
+
+fun int_to_string(x: int): char ptr {
+	var result: char ptr = "     0";
+	var digits: char ptr = "0123456789";
+	var i: int = 5;
+	var negative: bool = x < 0;
+	x = abs(x);
+	while(x > 0) {
+		result[i] = digits[x % 10];
+		x = x / 10;
+		i = i - 1
+	};
+	if(negative) {
+		result[i] = '-';
+		i = i - 1
+	};
+	if(not (i == 5 and result[i] == '0'))
+		i = i + 1;
+	(result as int + i) as char ptr
+}
+
+fun heap_report(): unit {
+	var p: int ptr = heap_start;
+	while(p != 0 as int ptr) {
+		print(int_to_string(p as int));
+		print(": \nIn use: ");
+		printline(if(p[0] < 0) "yes" else "no");
+		print("Size: ");
+		printline(int_to_string(if(p[0] < 0) p[0] - -32768 else p[0]));
+		printline("");
+		p = p[1] as int ptr
+	}
+}
 
 fun alloc(size: int): int ptr {
 	var block: int ptr = heap_start;
 	var found: bool = false;
 	while(not found and block != 0 as int ptr) {
 		if(!block >= 0 and !block >= size) {
-			# print("FOUND SUITABLE BLOCK\n");
+			// printline("FOUND SUITABLE BLOCK");
 			if(!block >= 4) {
-				# print("SPLITTING BLOCK\n");
+				// printline("SPLITTING BLOCK");
 				block[2 + size] = !block - 2 - size;
 				block[3 + size] = 0;
 				block[0] = size;
@@ -122,22 +155,23 @@ fun alloc(size: int): int ptr {
 			found = true
 		};
 		if(not found) {
-			# print("BLOCK NOT FOUND\n");
+			// printline("BLOCK NOT FOUND");
 			block = !((block as int + 1) as int ptr ptr)
 		}
 	};
 	if(block == 0 as int ptr)
 		abort("Unable to allocate block");
-	# print("ALLOC RETURN\n");
+	// printline("ALLOC RETURN");
 	(block as int + 2) as int ptr
 }
 
 fun free(block: int ptr): unit {
-	if(!((block as int - 2) as int ptr) > 0)
+	if(block[-2] > 0)
 		abort("Block already freed")
-	else
-		!((block as int - 2) as int ptr) = !((block as int - 2) as int ptr) - -32768
-		# try consolidating here?
+	else {
+		block[-2] = block[-2] - -32768
+		// try consolidating here?
+	}
 }
 
 fun copy(src: int ptr, dst: int ptr, length: int): unit {
@@ -148,11 +182,9 @@ fun copy(src: int ptr, dst: int ptr, length: int): unit {
 	}
 }
 
-fun strlen(str: char ptr): int {
+fun string_length(str: char ptr): int {
 	var i: int = 0;
-	while(str[i] != chr(0))
+	while(str[i] != 0 as char)
 		i = i + 1;
 	i
 }
-
-# in case i forget: make a "heap status report" function that walks through the heap and for each block, reports whether its in use and size

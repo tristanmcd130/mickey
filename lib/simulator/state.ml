@@ -4,7 +4,7 @@ type t = {
   mutable sp: int;
   memory: Bytes.t;
   read_callbacks: (int, t -> int) Hashtbl.t;
-  write_callbacks: (int, t -> int -> unit) Hashtbl.t;
+  write_callbacks: (int, t -> int -> int) Hashtbl.t;
 }
 
 let create ?(read_callbacks = []) ?(write_callbacks = []) program = {
@@ -26,9 +26,9 @@ let read state addr =
   | Some c -> c state
 let write state addr value =
   (* Printf.printf "WRITE %x %x\n" addr value; *)
-  match Hashtbl.find_opt state.write_callbacks addr with
-  | None -> Bytes.set_uint16_be state.memory (addr * 2) value
-  | Some c -> c state value
+  Bytes.set_uint16_be state.memory (addr * 2) (match Hashtbl.find_opt state.write_callbacks addr with
+  | None -> value
+  | Some c -> c state value)
 let (mod) x y =
   let result = x mod y in
   if result < 0 then

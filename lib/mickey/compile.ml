@@ -87,6 +87,7 @@ and compile_exp program type_defs env (exp, type') =
     ]
   | EBinary (l, BMul, r) -> compile_exp program type_defs env (ECall ("mul", [l; r]), TInt)
   | EBinary (l, BDiv, r) -> compile_exp program type_defs env (ECall ("div", [l; r]), TInt)
+  | EBinary (l, BMod, r) -> compile_exp program type_defs env (ECall ("mod", [l; r]), TInt)
   | EBinary (l, BEQ, r) -> compile_exp program type_defs env (ECall ("eq", [l; r]), TBool)
   | EBinary (l, BNE, r) -> compile_exp program type_defs env (ECall ("ne", [l; r]), TBool)
   | EBinary (l, BLT, r) -> compile_exp program type_defs env (ECall ("lt", [l; r]), TBool)

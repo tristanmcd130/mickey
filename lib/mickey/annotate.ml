@@ -164,30 +164,29 @@ and annotate_exp type_defs type_env (exp, ()) =
     (match rt with
     | TPtr t -> (EUnary (UDeref, (ra, rt)), t)
     | _ -> failwith "Not a pointer, cannot be dereferenced")
-  | EBinary (l, o, r) when List.mem o [BAdd; BSub; BMul; BDiv] ->
+  | EBinary (l, (BAdd as o), r) | EBinary (l, (BSub as o), r) | EBinary (l, (BMul as o), r) | EBinary (l, (BDiv as o), r) | EBinary (l, (BMod as o), r) ->
     let (la, lt) = annotate_exp type_defs type_env l in
     let (ra, rt) = annotate_exp type_defs type_env r in
     assert_equal_type type_defs lt TInt;
     assert_equal_type type_defs rt TInt;
     (EBinary ((la, lt), o, (ra, rt)), TInt)
-  | EBinary (l, o, r) when List.mem o [BEQ; BNE] ->
+  | EBinary (l, (BEQ as o), r) | EBinary (l, (BNE as o), r) ->
     let (la, lt) = annotate_exp type_defs type_env l in
     let (ra, rt) = annotate_exp type_defs type_env r in
     assert_equal_type type_defs lt rt;
     (EBinary ((la, lt), o, (ra, rt)), TBool)
-  | EBinary (l, o, r) when List.mem o [BGT; BLT; BGE; BLE] ->
+  | EBinary (l, (BGT as o), r) | EBinary (l, (BLT as o), r) | EBinary (l, (BGE as o), r) | EBinary (l, (BLE as o), r) ->
     let (la, lt) = annotate_exp type_defs type_env l in
     let (ra, rt) = annotate_exp type_defs type_env r in
     assert_equal_type type_defs lt TInt;
     assert_equal_type type_defs rt TInt;
     (EBinary ((la, lt), o, (ra, rt)), TBool)
-  | EBinary (l, o, r) when List.mem o [BAnd; BOr] ->
+  | EBinary (l, (BAnd as o), r) | EBinary (l, (BOr as o), r) ->
     let (la, lt) = annotate_exp type_defs type_env l in
     let (ra, rt) = annotate_exp type_defs type_env r in
     assert_equal_type type_defs lt TBool;
     assert_equal_type type_defs rt TBool;
     (EBinary ((la, lt), o, (ra, rt)), TBool)
-  | EBinary (_, _, _) -> failwith "Invalid binary operator" (* shouldn't be any left *)
   | EPtrSet (p, v) ->
     let (pa, pt) = annotate_exp type_defs type_env p in
     let (va, vt) = annotate_exp type_defs type_env v in

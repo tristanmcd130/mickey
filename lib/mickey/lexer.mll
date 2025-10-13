@@ -54,8 +54,9 @@ rule read = parse
 | "char"	{TCHAR}
 | "type"	{TYPE}
 | '.'		{DOT}
+| '%'		{PERCENT}
 | id		{ID (lexeme lexbuf)}
-| '#'		{skip_comment lexbuf}
+| "//"		{skip_comment lexbuf}
 | '"'		{read_string (Buffer.create 10) lexbuf}
 | '''		{read_char lexbuf}
 | _			{failwith ("Unexpected character: " ^ lexeme lexbuf)}

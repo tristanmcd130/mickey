@@ -4,10 +4,10 @@ dune exec assembler prelude.asm prelude.obj &&
 dune exec mickey stdlib.mky stdlib.asm &&
 dune exec assembler stdlib.asm stdlib.obj &&
 dune exec assembler heap.asm heap.obj &&
-for f in "${@:1:$#-1}"
+for f in $@
 do
 	dune exec mickey $f ${f%.*}.asm &&
 	dune exec assembler ${f%.*}.asm ${f%.*}.obj
 done &&
-dune exec linker prelude.obj stdlib.obj ${1%.*}.obj heap.obj ${@: -1}.exe # &&
+dune exec linker prelude.obj stdlib.obj ${@/%\.*/.obj} heap.obj ${1%.*}.exe # &&
 # dune exec simulator ${1%.*}.exe

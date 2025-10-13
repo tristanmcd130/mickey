@@ -7,7 +7,7 @@ open Simulator
 let prelude_obj = In_channel.with_open_bin "../../prelude.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
 let stdlib_obj = In_channel.with_open_bin "../../stdlib.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
 let heap_obj = In_channel.with_open_bin "../../heap.obj" In_channel.input_all |> Bytes.of_string |> Object.of_bytes
-let run code =
+let run ?(read_callbacks = []) ?(write_callbacks = []) code =
   let ast = Lexing.from_string code |> Parser.program Lexer.read in
   let ast = Stmt.SProgram [SImport "../../stdlib.mks"; ast] |> Preprocess.preprocess in
   let type_defs = Hashtbl.create 10 in
@@ -17,7 +17,7 @@ let run code =
   let env = Env.create None [] in
   Compile.compile program type_defs env typed_ast;
   let obj = Program.to_string program |> Lexing.from_string |> Assembler.Parser.program Assembler.Lexer.read |> Assembler.Assemble.assemble in
-  let state = State.create (Link.link [prelude_obj; stdlib_obj; obj; heap_obj]) in
+  let state = State.create ~read_callbacks ~write_callbacks (Link.link [prelude_obj; stdlib_obj; obj; heap_obj]) in
   State.run state;
   state
 let make_test value code _ =
@@ -25,6 +25,19 @@ let make_test value code _ =
   assert_equal value (if state.ac > 32767 then state.ac - 65536 else state.ac) ~printer: (fun x -> Printf.sprintf "%d" x)
 let make_error_test msg code _ =
   assert_raises (Failure msg) (fun _ -> run code)
+let make_output_test output code _ =
+  let xmtr_on = ref false in
+  let buffer = Buffer.create 10 in
+  let _ = run ~write_callbacks: [
+    (4094, fun _ value ->
+      if !xmtr_on then
+        value |> Char.chr |> Buffer.add_char buffer;
+      value);
+    (4095, fun _ value ->
+      xmtr_on := value land 8 = 8;
+      value);
+  ] code in
+  assert_equal output (Buffer.contents buffer) ~printer: (fun x -> x)
 let tests = "mickey tests" >::: [
   "int" >:: make_test 5 "fun main(): int {5}";
   "int bigger than 4095" >:: make_test 10001 "fun main(): int {10001}";
@@ -45,6 +58,8 @@ let tests = "mickey tests" >::: [
   "divide negative 1st arg" >:: make_test (-20) "fun main(): int {-440 / 21}";
   "divide negative 2nd arg" >:: make_test (-20) "fun main(): int {440 / -21}";
   "divide negative both args" >:: make_test 20 "fun main(): int {-440 / -21}";
+  "modulo" >:: make_test 10 "fun main(): int {466 % 24}";
+  "modulo 0" >:: make_test 4 "fun main(): int {4 % 24}";
   "add/mul precedence" >:: make_test 7 "fun main(): int {1 + 2 * 3}";
   "parentheses" >:: make_test 9 "fun main(): int {(1 + 2) * 3}";
   "equal" >:: make_test 1 "fun main(): int {(1 == 1) as int}";
@@ -80,11 +95,11 @@ let tests = "mickey tests" >::: [
   (* TODO: figure out how to add tests for import *)
   "sig" >:: make_error_test "Cannot redefine main inconsistently with its previous definition" "sig main(int): unit\nfun main(): int {-5}";
   "sig variables" >:: make_test 5 "sig x: int\nvar x: int = 5\nfun main(): int {x}";
-  "double free" >:: make_test 0 "fun main(): int {var x: int ptr = alloc(1); free(x); free(x); 5}";
-  "index" >:: make_test (Char.code 'b') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; code(x[4])}";
-  "index set" >:: make_test (Char.code 'c') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] = 'c'; code(x[4])}";
-  "local string" >:: make_test (Char.code 'b') "fun f(x: int): char ptr {var s: char ptr = \"abcde\"; s[x] = '6'; if(x >= 4) s else {f(x + 1); s}} fun main(): int {code(f(0)[1])}";
-  "string length" >:: make_test 13 "fun main(): int {strlen(\"Hello, world!\")}";
+  "double free" >:: make_output_test "Error: Block already freed\n" "fun main(): int {var x: int ptr = alloc(1); free(x); free(x); 5}";
+  "index" >:: make_test (Char.code 'b') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] as int}";
+  "index set" >:: make_test (Char.code 'c') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] = 'c'; x[4] as int}";
+  "local string" >:: make_test (Char.code 'b') "fun f(x: int): char ptr {var s: char ptr = \"abcde\"; s[x] = '6'; if(x >= 4) s else {f(x + 1); s}} fun main(): int {f(0)[1] as int}";
+  "string length" >:: make_test 13 "fun main(): int {string_length(\"Hello, world!\")}";
   "else precedence" >:: make_test 1 "fun main(): int {if(true) 1 else 2 + 3}";
   "custom type" >:: make_test 5 "type t = int\nfun main(): int {var x: t = 5; x}";
   "custom type mismatch" >:: make_error_test "Expected a value of type t, but received one of type bool" "type t = int\nfun main(): int {var x: t = true; x}";
@@ -92,5 +107,7 @@ let tests = "mickey tests" >::: [
   "struct undefined fields" >:: make_error_test "list was given undefined fields: a" "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{a = true, value = 7, next = empty}; 5}";
   "struct dot" >:: make_test 7 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = empty}}; x.value}";
   "nested struct dot" >:: make_test 2 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = list{value = 2, next = empty}}}; x.next.next.value}";
+  "int_to_string" >:: make_output_test "0\n1\n-1\n10000\n-12345\n32767\n-32767\n" "fun main(): int {printline(int_to_string(0)); printline(int_to_string(1)); printline(int_to_string(-1)); printline(int_to_string(10000)); printline(int_to_string(-12345)); printline(int_to_string(32767)); printline(int_to_string(-32767)); 0}";
+  "printline" >:: make_output_test "Hello, world!\n" "fun main(): int {printline(\"Hello, world!\"); 0}";
 ]
 let _ = run_test_tt_main tests
