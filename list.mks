@@ -1,0 +1,5 @@
+type list
+
+sig list_empty: list
+sig list_new(int, list): list
+sig list_length(list): int

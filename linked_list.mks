@@ -1,0 +1,5 @@
+type linked_list
+
+sig linked_list_empty: linked_list
+sig linked_list_new(int, linked_list): linked_list
+sig linked_list_length(linked_list): int

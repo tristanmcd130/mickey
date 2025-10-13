@@ -10,11 +10,12 @@ let heap_obj = In_channel.with_open_bin "../../heap.obj" In_channel.input_all |>
 let run code =
   let ast = Lexing.from_string code |> Parser.program Lexer.read in
   let ast = Stmt.SProgram [SImport "../../stdlib.mks"; ast] |> Preprocess.preprocess in
+  let type_defs = Hashtbl.create 10 in
   let type_env = Env.create None [] in
-  Type_check.type_check type_env ast;
+  let typed_ast = Annotate.annotate type_defs type_env ast in
   let program = Program.create () in
   let env = Env.create None [] in
-  Compile.compile program env ast;
+  Compile.compile program type_defs env typed_ast;
   let obj = Program.to_string program |> Lexing.from_string |> Assembler.Parser.program Assembler.Lexer.read |> Assembler.Assemble.assemble in
   let state = State.create (Link.link [prelude_obj; stdlib_obj; obj; heap_obj]) in
   State.run state;
@@ -76,7 +77,7 @@ let tests = "mickey tests" >::: [
   "deref nonpointer" >:: make_error_test "Not a pointer, cannot be dereferenced" "fun main(): int {!5}";
   "address of" >:: make_test 999 "fun main(): int {var x: int = 0; !@x = 999; !@x}";
   "if with no else" >:: make_test 1 "fun main(): int {var x: int = 1; if(false) x = 5; x}";
-  (* TODO: figure out how to add tests for import and sig *)
+  (* TODO: figure out how to add tests for import *)
   "sig" >:: make_error_test "Cannot redefine main inconsistently with its previous definition" "sig main(int): unit\nfun main(): int {-5}";
   "sig variables" >:: make_test 5 "sig x: int\nvar x: int = 5\nfun main(): int {x}";
   "double free" >:: make_test 0 "fun main(): int {var x: int ptr = alloc(1); free(x); free(x); 5}";
@@ -84,5 +85,12 @@ let tests = "mickey tests" >::: [
   "index set" >:: make_test (Char.code 'c') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] = 'c'; code(x[4])}";
   "local string" >:: make_test (Char.code 'b') "fun f(x: int): char ptr {var s: char ptr = \"abcde\"; s[x] = '6'; if(x >= 4) s else {f(x + 1); s}} fun main(): int {code(f(0)[1])}";
   "string length" >:: make_test 13 "fun main(): int {strlen(\"Hello, world!\")}";
+  "else precedence" >:: make_test 1 "fun main(): int {if(true) 1 else 2 + 3}";
+  "custom type" >:: make_test 5 "type t = int\nfun main(): int {var x: t = 5; x}";
+  "custom type mismatch" >:: make_error_test "Expected a value of type t, but received one of type bool" "type t = int\nfun main(): int {var x: t = true; x}";
+  "struct not enough fields" >:: make_error_test "list was not given all necessary fields: next" "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7}; 5}";
+  "struct undefined fields" >:: make_error_test "list was given undefined fields: a" "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{a = true, value = 7, next = empty}; 5}";
+  "struct dot" >:: make_test 7 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = empty}}; x.value}";
+  "nested struct dot" >:: make_test 2 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = list{value = 2, next = empty}}}; x.next.next.value}";
 ]
 let _ = run_test_tt_main tests

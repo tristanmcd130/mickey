@@ -1,0 +1,1 @@
+val annotate: (string, Type.t) Hashtbl.t -> Type.t Env.t -> unit Stmt.t -> Type.t Stmt.t

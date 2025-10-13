@@ -37,6 +37,8 @@
 %token LBRACKET
 %token RBRACKET
 %token TCHAR
+%token TYPE
+%token DOT
 %token <bool> BOOL
 %token <int> INT
 %token <string> ID
@@ -51,65 +53,70 @@
 %left AS
 %nonassoc NOT BANG
 %nonassoc LBRACKET
-%start <Stmt.t> program
+%start <unit Stmt.t> program
 %%
 
 program: ss = stmt*; EOF	{Stmt.SProgram ss}
 
 stmt:
-| FUN; n = ID; LPAREN; ps = separated_list(COMMA, param); RPAREN; COLON; t = type_; LBRACE; ls = local*; b = separated_nonempty_list(SEMICOLON, top_exp); RBRACE	{SFun (n, ps, t, ls, EBlock b)}
+| FUN; n = ID; LPAREN; ps = separated_list(COMMA, param); RPAREN; COLON; t = type_; LBRACE; ls = local*; b = separated_nonempty_list(SEMICOLON, top_exp); RBRACE	{SFun (n, ps, t, ls, (EBlock b, ()))}
 | VAR; n = ID; COLON; t = type_; EQUAL; v = literal																													{SVar (n, t, v)}
 | SIG; n = ID; LPAREN; ps = separated_list(COMMA, type_); RPAREN; COLON; t = type_																					{SSig (n, TArrow (ps, t))}
 | SIG; n = ID; COLON; t = type_																																		{SSig (n, t)}
-| IMPORT; s = STRING																																				{Stmt.SImport s}
+| IMPORT; s = STRING																																				{SImport s}
+| TYPE; n = ID																																						{STypeDef (n, TOpaque)}
+| TYPE; n = ID; EQUAL; t = top_type																																	{Stmt.STypeDef (n, t)}
 
 param: n = ID; COLON; t = type_	{(n, t)}
 
 local: VAR; n = ID; COLON; t = type_; EQUAL; v = exp; SEMICOLON	{(n, t, v)}
+
+top_type:
+| LBRACE; fs = separated_list(COMMA, param); RBRACE	{TStruct fs}
+| t = type_											{t}
 
 type_:
 | TINT				{TInt}
 | TUNIT				{TUnit}
 | TBOOL 			{TBool}
 | t = type_; TPTR	{TPtr t}
-| TCHAR 			{Type.TChar}
+| TCHAR 			{TChar}
+| n = ID			{Type.TName n}
 
 literal:
-| i = INT						{EInt i}
-| l = literal; AS; t = type_	{EAs (l, t)}
-| b = BOOL						{EBool b}
-| LPAREN; RPAREN				{EUnit}
-| s = STRING					{EString s}
-| c = CHAR						{EChar c}
+| i = INT						{(EInt i, ())}
+| l = literal; AS; t = type_	{(EAs (l, t), ())}
+| b = BOOL						{(EBool b, ())}
+| LPAREN; RPAREN				{(EUnit, ())}
+| s = STRING					{(EString s, ())}
+| c = CHAR						{(EChar c, ())}
 
 top_exp:
-| n = ID; EQUAL; v = exp								{ESet (n, v)}
-| BANG; e = exp; EQUAL; v = exp							{EPtrSet (e, v)}
-| e = exp; LBRACKET; i = exp; RBRACKET; EQUAL; v = exp	{Exp.EIndexSet (e, i, v)}
+| n = ID; EQUAL; v = exp								{(ESet (n, v), ())}
+| BANG; e = exp; EQUAL; v = exp							{(EPtrSet (e, v), ())}
+| e = exp; LBRACKET; i = exp; RBRACKET; EQUAL; v = exp	{(Exp.EIndexSet (e, i, v), ())}
 | e = exp												{e}
 
 exp:
-| i = INT													{EInt i}
-| b = BOOL													{EBool b}
-| LPAREN; RPAREN											{EUnit}
-| s = STRING												{EString s}
-| c = CHAR													{EChar c}
-| LBRACE; es = separated_list(SEMICOLON, top_exp); RBRACE	{EBlock es}
-| BREAK; LPAREN; e = exp; RPAREN							{EBreak e}
-| n = ID													{EVar n}
-| n = ID; LPAREN; a = separated_list(COMMA, exp); RPAREN	{ECall (n, a)}
-| AT; n = ID												{EAddrOf n}
-| o = unary_op; r = exp										{EUnary (o, r)}
-| l = exp; o = binary_op; r = exp							{EBinary (l, o, r)}
-| e = exp; AS; t = type_									{EAs (e, t)}
-| IF; LPAREN; c = exp; RPAREN; t = top_exp; e = else_		{EIf (c, t, e)}
-| WHILE; LPAREN; c = exp; RPAREN; b = top_exp				{EWhile (c, b)}
-| e = exp; LBRACKET; i = exp; RBRACKET						{Exp.EIndex (e, i)}
+| i = INT													{(EInt i, ())}
+| b = BOOL													{(EBool b, ())}
+| LPAREN; RPAREN											{(EUnit, ())}
+| s = STRING												{(EString s, ())}
+| c = CHAR													{(EChar c, ())}
+| LBRACE; es = separated_list(SEMICOLON, top_exp); RBRACE	{(EBlock es, ())}
+| BREAK; LPAREN; e = exp; RPAREN							{(EBreak e, ())}
+| n = ID													{(EVar n, ())}
+| n = ID; LPAREN; a = separated_list(COMMA, exp); RPAREN	{(ECall (n, a), ())}
+| AT; n = ID												{(EAddrOf n, ())}
+| o = unary_op; r = exp										{(EUnary (o, r), ())}
+| l = exp; o = binary_op; r = exp							{(EBinary (l, o, r), ())}
+| e = exp; AS; t = type_									{(EAs (e, t), ())}
+| IF; LPAREN; c = exp; RPAREN; t = top_exp; e = else_		{(EIf (c, t, e), ())}
+| WHILE; LPAREN; c = exp; RPAREN; b = top_exp				{(EWhile (c, b), ())}
+| e = exp; LBRACKET; i = exp; RBRACKET						{(EIndex (e, i), ())}
+| n = ID; LBRACE; fs = separated_list(COMMA, field); RBRACE	{(EStruct (n, fs), ())}
+| e = exp; DOT; f = ID										{(Exp.EDot (e, f), ())}
 | LPAREN; e = exp; RPAREN									{e}
-
-else_:
-|					{EUnit}
-| ELSE; e = top_exp	{e}
 
 %inline unary_op:
 | MINUS	{Exp.UNeg}
@@ -129,3 +136,9 @@ else_:
 | LE		{Exp.BLE}
 | AND		{Exp.BAnd}
 | OR		{Exp.BOr}
+
+else_:
+|					{(EUnit, ())}
+| ELSE; e = top_exp	{e}
+
+field: f = ID; EQUAL; v = exp	{(f, v)}

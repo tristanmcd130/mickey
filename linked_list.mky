@@ -1,0 +1,19 @@
+include "linked_list.mks"
+
+type linked_list = {
+	value: int,
+	next: linked_list
+}
+
+var linked_list_empty: linked_list = 0 as linked_list
+
+fun linked_list_new(v: int, n: linked_list): linked_list {
+	linked_list{value = v, next = n}
+}
+
+fun linked_list_length(l: linked_list): int {
+	if(l == linked_list_empty)
+		0
+	else
+		1 + linked_list_length(l.next)
+}

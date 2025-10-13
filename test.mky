@@ -1,17 +1,6 @@
-fun f(x: int): char ptr {
-	var s: char ptr = "abcde";
-	s[x] = '6';
-	if(x >= 4)
-		s
-	else {
-		f(x + 1);
-		print(s);
-		print("\n");
-		s
-	}
-}
+import "list.mks"
 
 fun main(): int {
-	f(0);
-	0
+	var l: list = list_new(5, list_new(6, list_new(7, list_empty)));
+	list_length(l)
 }

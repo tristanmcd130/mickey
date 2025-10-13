@@ -109,16 +109,16 @@ fun alloc(size: int): int ptr {
 	var block: int ptr = heap_start;
 	var found: bool = false;
 	while(not found and block != 0 as int ptr) {
-		if(!block >= size) {
+		if(!block >= 0 and !block >= size) {
 			# print("FOUND SUITABLE BLOCK\n");
 			if(!block >= 4) {
 				# print("SPLITTING BLOCK\n");
-				!((block as int + 2 + size) as int ptr) = !block - 2 - size;
-				!((block as int + 3 + size) as int ptr) = 0;
-				!block = size;
-				!((block as int + 1) as int ptr) = block as int + 2 + size
+				block[2 + size] = !block - 2 - size;
+				block[3 + size] = 0;
+				block[0] = size;
+				block[1] = block as int + 2 + size
 			};
-			!block = !block + -32768;
+			block[0] = block[0] + -32768;
 			found = true
 		};
 		if(not found) {
@@ -128,6 +128,7 @@ fun alloc(size: int): int ptr {
 	};
 	if(block == 0 as int ptr)
 		abort("Unable to allocate block");
+	# print("ALLOC RETURN\n");
 	(block as int + 2) as int ptr
 }
 
@@ -153,3 +154,5 @@ fun strlen(str: char ptr): int {
 		i = i + 1;
 	i
 }
+
+# in case i forget: make a "heap status report" function that walks through the heap and for each block, reports whether its in use and size

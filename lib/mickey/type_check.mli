@@ -1,1 +1,0 @@
-val type_check: Type.t Env.t -> Stmt.t -> unit

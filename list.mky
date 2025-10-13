@@ -1,0 +1,19 @@
+import "list.mks"
+
+type list = {
+	value: int,
+	next: list
+}
+
+var list_empty: list = 0 as list
+
+fun list_new(v: int, n: list): list {
+	list{value = v, next = n}
+}
+
+fun list_length(l: list): int {
+	if(l == list_empty)
+		0
+	else
+		1 + list_length(l.next)
+}

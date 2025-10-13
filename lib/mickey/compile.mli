@@ -1,1 +1,1 @@
-val compile: Program.t -> int Env.t -> Stmt.t -> unit
+val compile: Program.t -> (string, Type.t) Hashtbl.t -> int Env.t -> Type.t Stmt.t -> unit

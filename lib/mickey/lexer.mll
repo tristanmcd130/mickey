@@ -52,6 +52,8 @@ rule read = parse
 | '['		{LBRACKET}
 | ']'		{RBRACKET}
 | "char"	{TCHAR}
+| "type"	{TYPE}
+| '.'		{DOT}
 | id		{ID (lexeme lexbuf)}
 | '#'		{skip_comment lexbuf}
 | '"'		{read_string (Buffer.create 10) lexbuf}
