@@ -7,6 +7,8 @@ and constant =
 | CInt of int
 | CString of string
 | CChar of string
+| CArray of constant list
+| CLabel of string
 
 val create: unit -> t
 val add_instructions: t -> Common.Instruction.t list -> unit

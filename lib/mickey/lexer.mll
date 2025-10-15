@@ -30,21 +30,20 @@ rule read = parse
 | "bool"	{TBOOL}
 | '*'		{STAR}
 | '/'		{SLASH}
+| '%'		{PERCENT}
 | "=="		{EQ}
 | "!="		{NE}
 | '>'		{GT}
 | '<'		{LT}
 | ">="		{GE}
 | "<="		{LE}
-| "and"		{AND}
-| "or"		{OR}
-| "not"		{NOT}
+| "&"		{AND}
+| "|"		{PIPE}
+| "!"		{BANG}
 | "var"		{VAR}
 | "while"	{WHILE}
 | "ptr"		{TPTR}
-| '!'		{BANG}
 | "as"		{AS}
-| '@'		{AT}
 | '{'		{LBRACE}
 | '}'		{RBRACE}
 | "import"	{IMPORT}
@@ -54,7 +53,7 @@ rule read = parse
 | "char"	{TCHAR}
 | "type"	{TYPE}
 | '.'		{DOT}
-| '%'		{PERCENT}
+| '@'		{AT}
 | id		{ID (lexeme lexbuf)}
 | "//"		{skip_comment lexbuf}
 | '"'		{read_string (Buffer.create 10) lexbuf}

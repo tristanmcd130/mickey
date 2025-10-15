@@ -51,5 +51,6 @@ let tests = "assembler tests" >::: [
   "char" >:: make_test [] [] [Char.code 't'] "'t'";
   "escaped char" >:: make_test [] [] [Char.code '\t'] "'\\t'";
   "backslash" >:: make_test [] [] [Char.code '\\'] "'\\\\'";
+  "label address" >:: make_test [("a", 1)] [(0, "a"); (1, "a")] [0x0000; 0x0000] "lodd a\na: a";
 ]
 let _ = run_test_tt_main tests

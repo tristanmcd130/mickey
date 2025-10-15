@@ -2,4 +2,5 @@ type list
 
 sig list_empty: list
 sig list_new(int, list): list
+sig list_free(list): unit
 sig list_length(list): int

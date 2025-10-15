@@ -2,6 +2,14 @@ let rec find_first ?(index = 0) value = function
 | [] -> failwith "Can't find value"
 | v :: _ when v = value -> index
 | _ :: vs -> find_first ~index: (index + 1) value vs
+let rec exp_to_constant = function
+| Exp.EInt i -> Program.CInt i
+| EChar c -> CChar c
+| EUnit | EBool false -> CInt 0
+| EBool true -> CInt 1
+| EString s -> CString s
+| EArray es -> CArray (List.map (fun (e, _) -> exp_to_constant e) es)
+| _ -> failwith "Invalid array value (try setting it with an index later)"
 let rec compile program type_defs env = function
 | Stmt.SProgram [] | SSig _ | STypeDef _ -> ()
 | SProgram (s :: ss) ->
@@ -30,9 +38,11 @@ let rec compile program type_defs env = function
   ]
 | SVar (n, _, (v, _)) ->
   (match v with
-  | EInt i -> Program.add_constant program n (CInt i)
-  | EString s -> Program.add_constant program n (CString s)
-  | _ -> failwith "Invalid global initializer")
+  | (EString _ | EArray _) as e ->
+    let label = Printf.sprintf "a%d" (String.hash n) in
+    Program.add_constant program label (exp_to_constant e);
+    Program.add_constant program n (CLabel label)
+  | e -> Program.add_constant program n (exp_to_constant e))
 | SImport _ -> failwith "import still present even after preprocessing... and it's also not caught by type checking?"
 and compile_exp program type_defs env (exp, type') =
   match exp with
@@ -63,12 +73,6 @@ and compile_exp program type_defs env (exp, type') =
       ISubl 0;
       IInsp 1;
     ]
-  | EUnary (UDeref, r) ->
-    compile_exp program type_defs env r;
-    Program.add_instructions program [
-      IPshi;
-      IPop;
-    ]
   | EBinary (l, BAdd, r) ->
     compile_exp program type_defs env r;
     Program.add_instructions program [IPush];
@@ -85,22 +89,17 @@ and compile_exp program type_defs env (exp, type') =
       ISubl 0;
       IInsp 1;
     ]
-  | EBinary (l, BMul, r) -> compile_exp program type_defs env (ECall ("mul", [l; r]), TInt)
-  | EBinary (l, BDiv, r) -> compile_exp program type_defs env (ECall ("div", [l; r]), TInt)
-  | EBinary (l, BMod, r) -> compile_exp program type_defs env (ECall ("mod", [l; r]), TInt)
-  | EBinary (l, BEQ, r) -> compile_exp program type_defs env (ECall ("eq", [l; r]), TBool)
-  | EBinary (l, BNE, r) -> compile_exp program type_defs env (ECall ("ne", [l; r]), TBool)
-  | EBinary (l, BLT, r) -> compile_exp program type_defs env (ECall ("lt", [l; r]), TBool)
-  | EBinary (l, BGT, r) -> compile_exp program type_defs env (ECall ("lt", [r; l]), TBool)
-  | EBinary (l, BLE, r) -> compile_exp program type_defs env (ECall ("ge", [r; l]), TBool)
-  | EBinary (l, BGE, r) -> compile_exp program type_defs env (ECall ("ge", [l; r]), TBool)
-  | EBinary (l, BAnd, r) -> compile_exp program type_defs env (ECall ("and", [l; r]), TBool)
-  | EBinary (l, BOr, r) -> compile_exp program type_defs env (ECall ("or", [l; r]), TBool)
-  | EPtrSet (e, v) ->
-    compile_exp program type_defs env v;
-    Program.add_instructions program [IPush];
-    compile_exp program type_defs env e;
-    Program.add_instructions program [IPopi]
+  | EBinary (l, BMul, r) -> compile_exp program type_defs env (ECall ("_mul", [l; r]), TInt)
+  | EBinary (l, BDiv, r) -> compile_exp program type_defs env (ECall ("_div", [l; r]), TInt)
+  | EBinary (l, BMod, r) -> compile_exp program type_defs env (ECall ("_mod", [l; r]), TInt)
+  | EBinary (l, BEQ, r) -> compile_exp program type_defs env (ECall ("_eq", [l; r]), TBool)
+  | EBinary (l, BNE, r) -> compile_exp program type_defs env (ECall ("_ne", [l; r]), TBool)
+  | EBinary (l, BLT, r) -> compile_exp program type_defs env (ECall ("_lt", [l; r]), TBool)
+  | EBinary (l, BGT, r) -> compile_exp program type_defs env (ECall ("_lt", [r; l]), TBool)
+  | EBinary (l, BLE, r) -> compile_exp program type_defs env (ECall ("_ge", [r; l]), TBool)
+  | EBinary (l, BGE, r) -> compile_exp program type_defs env (ECall ("_ge", [l; r]), TBool)
+  | EBinary (l, BAnd, r) -> compile_exp program type_defs env (ECall ("_and", [l; r]), TBool)
+  | EBinary (l, BOr, r) -> compile_exp program type_defs env (ECall ("_or", [l; r]), TBool)
   | ESet (n, v) ->
     compile_exp program type_defs env v;
     Program.add_instructions program (match Env.find_opt env n with
@@ -135,10 +134,6 @@ and compile_exp program type_defs env (exp, type') =
       ILabel end_label;
     ]
   | EAs (e, _) -> compile_exp program type_defs env e
-  | EAddrOf n ->
-    Program.add_instructions program (match Env.find_opt env n with
-    | None -> [ILoco (Label n)]
-    | Some i -> [ILoco (Int i); IAddd (Label "fp")])
   | EUnit -> ()
   | EString s ->
     let label = Printf.sprintf "s%d" (String.hash s) in
@@ -203,3 +198,16 @@ and compile_exp program type_defs env (exp, type') =
         ]
       | _ -> failwith (n ^ " is not a struct type (this should have been caught during type checking)"))
     | t -> failwith (Type.to_string t ^ " is not a struct type, and not a name either"))
+  | EArray es ->
+    let label = Program.new_label program in
+    Program.add_constant program label (CArray (List.map (fun (e, _) -> match e with
+    | Exp.EInt i -> Program.CInt i
+    | EChar c -> CChar c
+    | EUnit | EBool false -> CInt 0
+    | EBool true -> CInt 1
+    | _ -> failwith "Invalid array value (try setting it with an index later)") es));
+    Program.add_instructions program [ILoco (Label label)]
+  | EAddrOf n ->
+    Program.add_instructions program (match Env.find_opt env n with
+    | None -> [ILoco (Label n)]
+    | Some i -> [ILoco (Int i); IAddd (Label "fp")])

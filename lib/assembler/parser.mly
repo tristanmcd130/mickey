@@ -62,6 +62,7 @@ instruction:
 | i = INT			{IInt i}
 | s = STRING		{IString s}
 | c = CHAR			{IChar c}
+| l = LABEL			{ILodd (Label l)}
 
 arg:
 | i = INT	{Int i}

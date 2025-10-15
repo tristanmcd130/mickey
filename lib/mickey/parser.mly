@@ -15,6 +15,7 @@
 %token TBOOL
 %token STAR
 %token SLASH
+%token PERCENT
 %token EQ
 %token NE
 %token GT
@@ -22,14 +23,12 @@
 %token GE
 %token LE
 %token AND
-%token OR
-%token NOT
+%token PIPE
+%token BANG
 %token VAR
 %token WHILE
 %token TPTR
-%token BANG
 %token AS
-%token AT
 %token LBRACE
 %token RBRACE
 %token IMPORT
@@ -39,21 +38,22 @@
 %token TCHAR
 %token TYPE
 %token DOT
-%token PERCENT
+%token AT
 %token <bool> BOOL
 %token <int> INT
 %token <string> ID
 %token <string> STRING
 %token <string> CHAR
 %token EOF
-%left OR
+%left PIPE
 %left AND
 %left EQ NE LT GT LE GE
 %left PLUS MINUS PERCENT
 %left STAR SLASH
 %left AS
-%nonassoc NOT BANG
+%nonassoc BANG
 %nonassoc LBRACKET
+%nonassoc DOT
 %start <unit Stmt.t> program
 %%
 
@@ -85,44 +85,51 @@ type_:
 | n = ID			{Type.TName n}
 
 literal:
-| i = INT						{(EInt i, ())}
-| l = literal; AS; t = type_	{(EAs (l, t), ())}
-| b = BOOL						{(EBool b, ())}
-| LPAREN; RPAREN				{(EUnit, ())}
-| s = STRING					{(EString s, ())}
-| c = CHAR						{(EChar c, ())}
+| i = INT														{(EInt i, ())}
+| l = literal; AS; t = type_									{(EAs (l, t), ())}
+| b = BOOL														{(EBool b, ())}
+| LPAREN; RPAREN												{(EUnit, ())}
+| s = STRING													{(EString s, ())}
+| c = CHAR														{(EChar c, ())}
+| LBRACKET; es = separated_list(COMMA, array_literal); RBRACKET	{(Exp.EArray es, ())}
+
+array_literal:
+| i = INT							{(EInt i, ())}
+| l = array_literal; AS; t = type_	{(EAs (l, t), ())}
+| b = BOOL							{(EBool b, ())}
+| LPAREN; RPAREN					{(EUnit, ())}
+| c = CHAR							{(Exp.EChar c, ())}
 
 top_exp:
 | n = ID; EQUAL; v = exp								{(ESet (n, v), ())}
-| BANG; e = exp; EQUAL; v = exp							{(EPtrSet (e, v), ())}
 | e = exp; LBRACKET; i = exp; RBRACKET; EQUAL; v = exp	{(Exp.EIndexSet (e, i, v), ())}
 | e = exp												{e}
 
 exp:
-| i = INT													{(EInt i, ())}
-| b = BOOL													{(EBool b, ())}
-| LPAREN; RPAREN											{(EUnit, ())}
-| s = STRING												{(EString s, ())}
-| c = CHAR													{(EChar c, ())}
-| LBRACE; es = separated_list(SEMICOLON, top_exp); RBRACE	{(EBlock es, ())}
-| BREAK; LPAREN; e = exp; RPAREN							{(EBreak e, ())}
-| n = ID													{(EVar n, ())}
-| n = ID; LPAREN; a = separated_list(COMMA, exp); RPAREN	{(ECall (n, a), ())}
-| AT; n = ID												{(EAddrOf n, ())}
-| o = unary_op; r = exp										{(EUnary (o, r), ())}
-| l = exp; o = binary_op; r = exp							{(EBinary (l, o, r), ())}
-| e = exp; AS; t = type_									{(EAs (e, t), ())}
-| IF; LPAREN; c = exp; RPAREN; t = top_exp; e = else_		{(EIf (c, t, e), ())}
-| WHILE; LPAREN; c = exp; RPAREN; b = top_exp				{(EWhile (c, b), ())}
-| e = exp; LBRACKET; i = exp; RBRACKET						{(EIndex (e, i), ())}
-| n = ID; LBRACE; fs = separated_list(COMMA, field); RBRACE	{(EStruct (n, fs), ())}
-| e = exp; DOT; f = ID										{(Exp.EDot (e, f), ())}
-| LPAREN; e = exp; RPAREN									{e}
+| i = INT														{(EInt i, ())}
+| b = BOOL														{(EBool b, ())}
+| LPAREN; RPAREN												{(EUnit, ())}
+| s = STRING													{(EString s, ())}
+| c = CHAR														{(EChar c, ())}
+| LBRACE; es = separated_list(SEMICOLON, top_exp); RBRACE		{(EBlock es, ())}
+| BREAK; LPAREN; e = exp; RPAREN								{(EBreak e, ())}
+| n = ID														{(EVar n, ())}
+| n = ID; LPAREN; a = separated_list(COMMA, exp); RPAREN		{(ECall (n, a), ())}
+| o = unary_op; r = exp											{(EUnary (o, r), ())}
+| l = exp; o = binary_op; r = exp								{(EBinary (l, o, r), ())}
+| e = exp; AS; t = type_										{(EAs (e, t), ())}
+| IF; LPAREN; c = exp; RPAREN; t = top_exp; e = else_			{(EIf (c, t, e), ())}
+| WHILE; LPAREN; c = exp; RPAREN; b = top_exp					{(EWhile (c, b), ())}
+| e = exp; LBRACKET; i = exp; RBRACKET							{(EIndex (e, i), ())}
+| n = ID; LBRACE; fs = separated_list(COMMA, field); RBRACE		{(EStruct (n, fs), ())}
+| e = exp; DOT; f = ID											{(EDot (e, f), ())}
+| LBRACKET; es = separated_list(COMMA, array_literal); RBRACKET	{(EArray es, ())}
+| AT; n = ID													{(EAddrOf n, ())}
+| LPAREN; e = exp; RPAREN										{e}
 
 %inline unary_op:
 | MINUS	{Exp.UNeg}
-| NOT	{Exp.UNot}
-| BANG	{Exp.UDeref}
+| BANG	{Exp.UNot}
 
 %inline binary_op:
 | PLUS		{Exp.BAdd}
@@ -137,7 +144,7 @@ exp:
 | GE		{Exp.BGE}
 | LE		{Exp.BLE}
 | AND		{Exp.BAnd}
-| OR		{Exp.BOr}
+| PIPE		{Exp.BOr}
 
 else_:
 |					{(EUnit, ())}

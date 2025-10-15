@@ -11,6 +11,12 @@ fun list_new(v: int, n: list): list {
 	list{value = v, next = n}
 }
 
+fun list_free(l: list): unit {
+	if(l.next as int != 0)
+		list_free(l.next);
+	free(l as int ptr)
+}
+
 fun list_length(l: list): int {
 	if(l == list_empty)
 		0

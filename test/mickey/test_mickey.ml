@@ -48,7 +48,7 @@ let tests = "mickey tests" >::: [
   "arity checking" >:: make_error_test "Function f expected 2 arguments, but received 0" "fun f(x: int, y: int): int {x}\nfun main(): int {f()}";
   "calling nonfunction" >:: make_error_test "x is not a function, cannot be called" "fun main(): int {var x: int = 4; x(6)}";
   "negation" >:: make_test 5 "fun main(): int {----5}";
-  "not" >:: make_test 1 "fun main(): int {(not false) as int}";
+  "not" >:: make_test 1 "fun main(): int {(!false) as int}";
   "add" >:: make_test 24 "fun main(): int {9 + 10 + 5}";
   "subtract" >:: make_test (-1) "fun main(): int {9 - 10}";
   "multiply" >:: make_test 924 "fun main(): int {44 * 21}";
@@ -70,9 +70,9 @@ let tests = "mickey tests" >::: [
   "greater than or equal" >:: make_test 1 "fun main(): int {(1 >= -2) as int}";
   "less than or equal" >:: make_test 1 "fun main(): int {(1 <= 2) as int}";
   "mul/compare precedence" >:: make_test 1 "fun main(): int {(5 * 2 >= 5) as int}";
-  "and" >:: make_test 1 "fun main(): int {(true and true) as int}";
-  "or" >:: make_test 0 "fun main(): int {(false or false) as int}";
-  "compare/logic precedence" >:: make_test 1 "fun main(): int {(2 > 1 or 2 < 1) as int}";
+  "and" >:: make_test 1 "fun main(): int {(true & true) as int}";
+  "or" >:: make_test 0 "fun main(): int {(false | false) as int}";
+  "compare/logic precedence" >:: make_test 1 "fun main(): int {(2 > 1 | 2 < 1) as int}";
   "locals" >:: make_test 51 "fun main(): int {var x: int = 51; x}";
   "globals" >:: make_test 6 "var y: int = 6\nfun main(): int {y}";
   "local precedence" >:: make_test 51 "var x: int = 6\nfun main(): int {var x: int = 51; x}";
@@ -81,33 +81,34 @@ let tests = "mickey tests" >::: [
   "set global" >:: make_test 6 "var x: int = 1\nfun f(): unit {x = 5}\nfun main(): int {var y: int = x; f(); y + x}";
   "break" >:: make_test 2 "fun main(): int {break(2); 5}";
   "if" >:: make_test 4 "fun main(): int {if(true) 4 else 6}";
-  "if false" >:: make_test 6 "fun main(): int {if(not true) 4 else 6}";
-  "if else" >:: make_test 5 "fun main(): int {if(not true) 1 else if(not not false) 2 else if(true) {3; 5} else 4}";
+  "if false" >:: make_test 6 "fun main(): int {if(!true) 4 else 6}";
+  "if else" >:: make_test 5 "fun main(): int {if(!true) 1 else if(!!false) 2 else if(true) {3; 5} else 4}";
   "while" >:: make_test 4096 "fun main(): int {var x: int = 2; while(x < 4000) x = x * 2; x}";
   "type checking in block" >:: make_error_test "Expected a value of type int, but received one of type unit" "fun f(): unit {()}\nfun main(): int {var x: int = f(); x}";
-  "as precedence" >:: make_test 1 "fun main(): int {not false as int}";
-  "pointer set" >:: make_test 419 "fun main(): int {!(0 as int ptr) = 419; !(0 as int ptr)}";
-  "pointer set nonpointer" >:: make_error_test "Not a pointer, cannot be assigned through" "fun main(): int {!main = 5}";
+  "as precedence" >:: make_test 1 "fun main(): int {!false as int}";
   "as type checking" >:: make_error_test "Expected a value of type int, but received one of type bool" "fun main(): int {(true + ()) as int}";
-  "deref nonpointer" >:: make_error_test "Not a pointer, cannot be dereferenced" "fun main(): int {!5}";
-  "address of" >:: make_test 999 "fun main(): int {var x: int = 0; !@x = 999; !@x}";
   "if with no else" >:: make_test 1 "fun main(): int {var x: int = 1; if(false) x = 5; x}";
   (* TODO: figure out how to add tests for import *)
   "sig" >:: make_error_test "Cannot redefine main inconsistently with its previous definition" "sig main(int): unit\nfun main(): int {-5}";
   "sig variables" >:: make_test 5 "sig x: int\nvar x: int = 5\nfun main(): int {x}";
   "double free" >:: make_output_test "Error: Block already freed\n" "fun main(): int {var x: int ptr = alloc(1); free(x); free(x); 5}";
-  "index" >:: make_test (Char.code 'b') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] as int}";
-  "index set" >:: make_test (Char.code 'c') "fun main(): int {var x: char ptr = \"goodbye cruel world\"; x[4] = 'c'; x[4] as int}";
-  "local string" >:: make_test (Char.code 'b') "fun f(x: int): char ptr {var s: char ptr = \"abcde\"; s[x] = '6'; if(x >= 4) s else {f(x + 1); s}} fun main(): int {f(0)[1] as int}";
-  "string length" >:: make_test 13 "fun main(): int {string_length(\"Hello, world!\")}";
+  "index" >:: make_test (Char.code 'b') "var x: char ptr = \"goodbye cruel world\"\nfun main(): int {x[4] as int}";
+  "index set" >:: make_test (Char.code 'c') "var x: char ptr = \"goodbye cruel world\"\nfun main(): int {x[4] = 'c'; x[4] as int}";
+  "index set nonpointer" >:: make_error_test "Not a pointer, cannot be indexed" "fun main(): int {main[5] = 3; 0}";
+  "str_length" >:: make_test 13 "fun main(): int {str_length(\"Hello, world!\")}";
   "else precedence" >:: make_test 1 "fun main(): int {if(true) 1 else 2 + 3}";
   "custom type" >:: make_test 5 "type t = int\nfun main(): int {var x: t = 5; x}";
-  "custom type mismatch" >:: make_error_test "Expected a value of type t, but received one of type bool" "type t = int\nfun main(): int {var x: t = true; x}";
+  (* "custom type mismatch" >:: make_error_test "Expected a value of type t, but received one of type bool" "type t = int\nfun main(): int {var x: t = true; x}"; record types get nominal typing, others get structural so we don't want this test *)
   "struct not enough fields" >:: make_error_test "list was not given all necessary fields: next" "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7}; 5}";
   "struct undefined fields" >:: make_error_test "list was given undefined fields: a" "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{a = true, value = 7, next = empty}; 5}";
   "struct dot" >:: make_test 7 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = empty}}; x.value}";
   "nested struct dot" >:: make_test 2 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = list{value = 2, next = empty}}}; x.next.next.value}";
-  "int_to_string" >:: make_output_test "0\n1\n-1\n10000\n-12345\n32767\n-32767\n" "fun main(): int {printline(int_to_string(0)); printline(int_to_string(1)); printline(int_to_string(-1)); printline(int_to_string(10000)); printline(int_to_string(-12345)); printline(int_to_string(32767)); printline(int_to_string(-32767)); 0}";
-  "printline" >:: make_output_test "Hello, world!\n" "fun main(): int {printline(\"Hello, world!\"); 0}";
+  "int_to_str" >:: make_output_test "0\n1\n-1\n10000\n-12345\n32767\n-32767\n0\n" "fun main(): int {println(int_to_str(0)); println(int_to_str(1)); println(int_to_str(-1)); println(int_to_str(10000)); println(int_to_str(-12345)); println(int_to_str(32767)); println(int_to_str(-32767)); println(int_to_str(0)); 0}";
+  "println" >:: make_output_test "Hello, world!\n" "fun main(): int {println(\"Hello, world!\"); 0}";
+  "global unit" >:: make_test 0 "var x: unit = ()\nfun main(): int {x as int}";
+  "global char" >:: make_test 115 "var x: char = 's'\nfun main(): int {x as int}";
+  "global bool" >:: make_test 1 "var x: bool = true\nfun main(): int {x as int}";
+  "ptr literal" >:: make_test 8 "var x: int ptr = [1, 9, 8, 4, 0]\nfun main(): int {x[2]}";
+  "address of" >:: make_test 4 "var x: int ptr = [1, 9, 8, 4, 0]\nfun main(): int {(@x)[0][3]}";
 ]
 let _ = run_test_tt_main tests

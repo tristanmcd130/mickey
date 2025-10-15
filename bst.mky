@@ -1,0 +1,57 @@
+type bst = {
+	left: bst,
+	value: int,
+	right: bst
+}
+
+var bst_null: bst = 0 as bst
+
+fun bst_new(left: bst, value: int, right: bst): bst {
+	bst{left = left, value = value, right = right}
+}
+
+fun bst_free(tree: bst): unit {
+	if(tree != bst_null) {
+		bst_free(tree.left);
+		bst_free(tree.right);
+		free(tree as int ptr)
+	}
+}
+
+fun bst_copy(tree: bst): bst {
+	if(tree == bst_null)
+		bst_null
+	else
+		bst{left = bst_copy(tree.left), value = tree.value, right = bst_copy(tree.right)}
+}
+
+fun bst_insert(tree: bst, value: int): bst {
+	if(tree == bst_null)
+		bst_new(bst_null, value, bst_null)
+	else
+		if(value < tree.value)
+			bst_new(bst_insert(tree.left, value), value, tree.right)
+		else
+			bst_new(tree.left, value, bst_insert(tree.right, value))
+}
+
+fun bst_print(tree: bst, tabs: int): unit {
+	var i: int = 0;
+	if(tree == bst_null) {
+		while(i < tabs) {
+			printchar('\t');
+			i = i + 1
+		};
+		print("NULL")
+	} else {
+		bst_print(tree.left, tabs + 1);
+		println("");
+		while(i < tabs) {
+			printchar('\t');
+			i = i + 1
+		};
+		print(int_to_str(tree.value));
+		println("");
+		bst_print(tree.right, tabs + 1)
+	}
+}

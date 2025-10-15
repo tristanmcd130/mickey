@@ -16,7 +16,7 @@ tmp: 0
 c1: 1
 c2: 2
 
-eq:
+_eq:
 lodl 1
 subl 2
 jzer eq_true
@@ -26,7 +26,7 @@ eq_true:
 loco 1
 retn
 
-ne:
+_ne:
 lodl 1
 subl 2
 jnze ne_true
@@ -36,7 +36,7 @@ ne_true:
 loco 1
 retn
 
-ge: ; x - y >= 0 => x >= y
+_ge: ; x - y >= 0 => x >= y
 lodl 1
 subl 2
 jpos ge_true
@@ -46,7 +46,7 @@ ge_true:
 loco 1
 retn
 
-lt: ; x - y < 0 => x < y
+_lt: ; x - y < 0 => x < y
 lodl 1
 subl 2
 jneg lt_true
@@ -56,14 +56,14 @@ lt_true:
 loco 1
 retn
 
-and:
+_and:
 lodl 1
 jzer and_false
 lodl 2
 and_false:
 retn
 
-or:
+_or:
 lodl 1
 jnze or_true
 lodl 2

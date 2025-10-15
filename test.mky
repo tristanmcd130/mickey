@@ -1,7 +1,21 @@
-import "list.mks"
+import "bst.mks"
+
+var nums: int ptr = [62, 20, 84, 44, 12, 16, 91, 77, 43, 8, 69, 63, 10, 19, 85, 30, 23, 14, 54, 86, 1, 53, 3, 22, 59, 68, 34, 87, 0, 6, 5, 46, 2, 71, 32, 82, 80, 17, 70, 58, 42, 88, 72, 48, 18, 81, 25, 37, 99, 41, 75, 66, 51, 73, 13, 57, 36, 93, 60, 27, 9, 78, 79, 74, 97, 67, 33, 94, 11, 21, 95, 7, 89, 76, 15, 26, 31, 47, 83, 61, 96, 50, 64, 35, 92, 49, 65, 56, 55, 24, 29, 45, 4, 38, 39, 90, 98, 40, 52, 28]
 
 fun main(): int {
-	var x: int ptr = alloc(10000);
-	free(x);
+	var tree: bst = bst_null;
+	var new_tree: bst = bst_null;
+	var i: int = 0;
+	while(i < 100) {
+		print("Inserting ");
+		print(int_to_str(nums[i]));
+		println("");
+		new_tree = bst_copy(bst_insert(tree, nums[i]));
+		bst_free(tree);
+		tree = new_tree;
+		i = i + 1
+	};
+	bst_print(tree, 0);
+	print("\n");
 	0
 }

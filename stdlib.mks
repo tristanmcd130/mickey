@@ -1,12 +1,13 @@
 sig abs(int): int
+sig printchar(char): unit
 sig print(char ptr): unit
-sig printline(char ptr): unit
+sig println(char ptr): unit
 sig readchar(): char
-sig readline(char ptr, int): unit
+sig read(char ptr, int): unit
 sig abort(char ptr): unit
 sig alloc(int): int ptr
 sig free(int ptr): unit
 sig copy(int ptr, int ptr, int): unit
-sig string_length(char ptr): int
-sig int_to_string(int): char ptr
+sig str_length(char ptr): int
+sig int_to_str(int): char ptr
 sig heap_report(): unit
