@@ -18,21 +18,14 @@ fun bst_free(tree: bst): unit {
 	}
 }
 
-fun bst_copy(tree: bst): bst {
-	if(tree == bst_null)
-		bst_null
+fun bst_insert(tree: bst ptr, value: int): unit {
+	if(tree[0] == bst_null)
+		tree[0] = bst_new(bst_null, value, bst_null)
 	else
-		bst{left = bst_copy(tree.left), value = tree.value, right = bst_copy(tree.right)}
-}
-
-fun bst_insert(tree: bst, value: int): bst {
-	if(tree == bst_null)
-		bst_new(bst_null, value, bst_null)
-	else
-		if(value < tree.value)
-			bst_new(bst_insert(tree.left, value), value, tree.right)
+		if(value < tree[0].value)
+			bst_insert(@tree[0].left, value)
 		else
-			bst_new(tree.left, value, bst_insert(tree.right, value))
+			bst_insert(@tree[0].right, value)
 }
 
 fun bst_print(tree: bst, tabs: int): unit {

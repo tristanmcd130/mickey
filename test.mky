@@ -4,18 +4,18 @@ var nums: int ptr = [62, 20, 84, 44, 12, 16, 91, 77, 43, 8, 69, 63, 10, 19, 85, 
 
 fun main(): int {
 	var tree: bst = bst_null;
-	var new_tree: bst = bst_null;
 	var i: int = 0;
 	while(i < 100) {
 		print("Inserting ");
 		print(int_to_str(nums[i]));
 		println("");
-		new_tree = bst_copy(bst_insert(tree, nums[i]));
-		bst_free(tree);
-		tree = new_tree;
+		bst_insert(@tree, nums[i]);
+		// bst_free(tree);
 		i = i + 1
 	};
 	bst_print(tree, 0);
-	print("\n");
+	println("");
+	bst_free(tree);
+	heap_report();
 	0
 }

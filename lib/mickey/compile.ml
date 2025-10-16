@@ -26,7 +26,7 @@ let rec compile program type_defs env = function
     ISwap;
   ];
   let local_env = Env.create (Some env) (List.mapi (fun i (n, _) -> (n, i)) ((List.map (fun (n, t, _) -> (n, t)) ls) @ [("", Type.TUnit); ("", TUnit)] @ ps)) in
-  List.iter (fun (n, _, v) -> compile_exp program type_defs local_env (Exp.ESet (n, v), Type.TUnit)) ls;
+  List.iter (fun (n, t, v) -> compile_exp program type_defs local_env (Exp.ESet ((EVar n, t), v), Type.TUnit)) ls;
   compile_exp program type_defs local_env b;
   Program.add_instructions program [
     IStod (Label "tmp");
@@ -102,9 +102,9 @@ and compile_exp program type_defs env (exp, type') =
   | EBinary (l, BOr, r) -> compile_exp program type_defs env (ECall ("_or", [l; r]), TBool)
   | ESet (n, v) ->
     compile_exp program type_defs env v;
-    Program.add_instructions program (match Env.find_opt env n with
-    | None -> [IStod (Label n)]
-    | Some i -> [IPush; ILoco (Int i); IAddd (Label "fp"); IPopi])
+    Program.add_instructions program [IPush];
+    compile_lval program type_defs env n;
+    Program.add_instructions program [IPopi]
   | EBreak e ->
     compile_exp program type_defs env e;
     Program.add_instructions program [IHalt]
@@ -153,7 +153,7 @@ and compile_exp program type_defs env (exp, type') =
       IPshi;
       IPop;
     ]
-  | EIndexSet (e, i, v) ->
+  (* | EIndexSet (e, i, v) ->
     compile_exp program type_defs env v;
     Program.add_instructions program [IPush];
     compile_exp program type_defs env e;
@@ -163,7 +163,7 @@ and compile_exp program type_defs env (exp, type') =
       IAddl 0;
       IInsp 1;
       IPopi;
-    ]
+    ] *)
   | EChar c -> Program.add_instructions program [ILoco (Char c)]
   | EStruct (n, vs) ->
     let fs = match Hashtbl.find type_defs n with
@@ -207,7 +207,35 @@ and compile_exp program type_defs env (exp, type') =
     | EBool true -> CInt 1
     | _ -> failwith "Invalid array value (try setting it with an index later)") es));
     Program.add_instructions program [ILoco (Label label)]
-  | EAddrOf n ->
+  | EAddrOf n -> compile_lval program type_defs env n
+and compile_lval program type_defs env (exp, _) =
+  match exp with
+  | Exp.EVar n ->
     Program.add_instructions program (match Env.find_opt env n with
     | None -> [ILoco (Label n)]
     | Some i -> [ILoco (Int i); IAddd (Label "fp")])
+  | EIndex (e, i) ->
+    compile_exp program type_defs env e;
+    Program.add_instructions program [IPush];
+    compile_exp program type_defs env i;
+    Program.add_instructions program [
+      IAddl 0;
+      IInsp 1;
+    ]
+  | EDot ((ea, et), f) ->
+    (match et with
+    | TName n ->
+      (match Hashtbl.find type_defs n with
+      | TStruct fs ->
+        compile_exp program type_defs env (ea, et);
+        let o = find_first f (List.map fst fs) in
+        (* Printf.printf "compile EDot: struct type = %s, field = %s, offset = %d\n" (Type.to_string et) f o; *)
+        Program.add_instructions program [
+          IPush;
+          ILoco (Int o);
+          IAddl 0;
+          IInsp 1;
+        ]
+      | _ -> failwith (n ^ " is not a struct type (this should have been caught during type checking)"))
+    | t -> failwith (Type.to_string t ^ " is not a struct type, and not a name either"))
+  | _ -> failwith "Not an lval, has no address"

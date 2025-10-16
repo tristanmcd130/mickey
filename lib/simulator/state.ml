@@ -20,12 +20,12 @@ let create ?(read_callbacks = []) ?(write_callbacks = []) program = {
   write_callbacks = write_callbacks |> List.to_seq |> Hashtbl.of_seq;
 }
 let read state addr =
-  (* Printf.printf "READ %x\n" addr; *)
+  (* Printf.printf "READ %03x\n" addr; *)
   match Hashtbl.find_opt state.read_callbacks addr with
   | None -> Bytes.get_uint16_be state.memory (addr * 2)
   | Some c -> c state
 let write state addr value =
-  (* Printf.printf "WRITE %x %x\n" addr value; *)
+  (* Printf.printf "WRITE %03x %04x\n" addr value; *)
   Bytes.set_uint16_be state.memory (addr * 2) (match Hashtbl.find_opt state.write_callbacks addr with
   | None -> value
   | Some c -> c state value)
@@ -48,7 +48,7 @@ let pop state =
   result
 let step state =
   let instruction = read state (let pc = state.pc in state.pc <- state.pc + 1; pc) in
-  (* Printf.printf "STEP %d %x (AC = %x, SP = %x)\n" (state.pc - 1) instruction state.ac state.sp; *)
+  (* Printf.printf "STEP %03x: %04x (AC = %04x, SP = %03x)\n" (state.pc - 1) instruction state.ac state.sp; *)
   let addr = instruction land 4095 in
   let constant = instruction land 255 in
   (match instruction lsr 12 with

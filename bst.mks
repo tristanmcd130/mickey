@@ -3,6 +3,5 @@ type bst
 sig bst_null: bst
 sig bst_new(bst, int, bst): bst
 sig bst_free(bst): unit
-sig bst_insert(bst, int): bst
+sig bst_insert(bst ptr, int): unit
 sig bst_print(bst, int): unit
-sig bst_copy(bst): bst

@@ -74,11 +74,12 @@ and annotate_exp type_defs type_env (exp, ()) =
     assert_equal_type type_defs rt TBool;
     (EBinary ((la, lt), o, (ra, rt)), TBool)
   | ESet (n, v) ->
+    let (na, nt) = annotate_exp type_defs type_env n in
     let (va, vt) = annotate_exp type_defs type_env v in
-    assert_equal_type type_defs vt (Env.find type_env n);
+    assert_equal_type type_defs vt nt;
     if match va with EString _ | EArray _ -> true | _ -> false then
       failwith "Assigning array/string literal to a local is not allowed. Only assign them to globals.";
-    (ESet (n, (va, vt)), TUnit)
+    (ESet ((na, nt), (va, vt)), TUnit)
   | EBreak e ->
     let (ea, et) = annotate_exp type_defs type_env e in
     (EBreak (ea, et), et)
@@ -112,7 +113,7 @@ and annotate_exp type_defs type_env (exp, ()) =
     (match et with
     | TPtr t -> (EIndex ((ea, et), (ia, it)), t)
     | _ -> failwith "Not a pointer, cannot be indexed")
-  | EIndexSet (e, i, v) ->
+  (* | EIndexSet (e, i, v) ->
     let (ea, et) = annotate_exp type_defs type_env e in
     let (ia, it) = annotate_exp type_defs type_env i in
     let (va, vt) = annotate_exp type_defs type_env v in
@@ -121,7 +122,7 @@ and annotate_exp type_defs type_env (exp, ()) =
     | TPtr t ->
       assert_equal_type type_defs vt t;
       (EIndexSet ((ea, et), (ia, it), (va, vt)), TUnit)
-    | _ -> failwith "Not a pointer, cannot be indexed")
+    | _ -> failwith "Not a pointer, cannot be indexed") *)
   | EChar c -> (EChar c, TChar)
   | EStruct (n, vs) ->
     let fs = match Hashtbl.find type_defs n with
@@ -158,7 +159,9 @@ and annotate_exp type_defs type_env (exp, ()) =
         TUnit in
     List.iter (fun (_, t') -> assert_equal_type type_defs t' t) es';
     (EArray es', TPtr t)
-  | EAddrOf n -> (EAddrOf n, TPtr (Env.find type_env n))
+  | EAddrOf n ->
+    let (na, nt) = annotate_exp type_defs type_env n in
+    (EAddrOf (na, nt), TPtr nt)
 and assert_equal_type type_defs actual expected =
   if not (Type.equal type_defs actual expected) then
     failwith ("Expected a value of type " ^ Type.to_string expected ^ ", but received one of type " ^ Type.to_string actual)
