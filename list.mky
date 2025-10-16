@@ -12,7 +12,7 @@ fun list_new(v: int, n: list): list {
 }
 
 fun list_free(l: list): unit {
-	if(l.next as int != 0)
+	if(l.next != 0 as list)
 		list_free(l.next);
 	free(l as int ptr)
 }
@@ -22,4 +22,19 @@ fun list_length(l: list): int {
 		0
 	else
 		1 + list_length(l.next)
+}
+
+fun list_append(l: list ptr, v: int): unit {
+	if(l[0] == list_empty)
+		l[0] = list_new(v, list_empty)
+	else
+		list_append(@l[0].next, v)
+}
+
+fun list_print(l: list): unit {
+	if(l != list_empty) {
+		print(int_to_str(l.value));
+		printchar(' ');
+		list_print(l.next)
+	}
 }

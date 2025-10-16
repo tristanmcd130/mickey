@@ -4,3 +4,5 @@ sig list_empty: list
 sig list_new(int, list): list
 sig list_free(list): unit
 sig list_length(list): int
+sig list_append(list ptr, int): unit
+sig list_print(list): unit

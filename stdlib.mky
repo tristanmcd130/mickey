@@ -157,7 +157,7 @@ fun alloc(size: int): int ptr {
 	var block: int ptr = heap_start;
 	var found: bool = false;
 	while(!found & block != 0 as int ptr) {
-		if(block[0] >= 0 & block[0] >= size) {
+		if(block[0] >= size) {
 			// print("FOUND SUITABLE AT ");
 			// print(int_to_str(block as int));
 			// println("");
@@ -183,11 +183,15 @@ fun alloc(size: int): int ptr {
 }
 
 fun free(block: int ptr): unit {
-	if(block[-2] > 0)
+	var b: int ptr = (block as int - 2) as int ptr;
+	if(block[-2] >= 0)
 		abort("Block already freed")
 	else {
-		block[-2] = block[-2] - -32768
-		// try consolidating here?
+		block[-2] = block[-2] - -32768;
+		while((b[1] as int ptr)[0] < 0) {
+			b[0] = b[0] + 2 + (b[1] as int ptr)[0];
+			b[1] = (b[1] as int ptr)[1]
+		}
 	}
 }
 

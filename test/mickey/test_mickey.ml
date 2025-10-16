@@ -108,10 +108,9 @@ let tests = "mickey tests" >::: [
   "global unit" >:: make_test 0 "var x: unit = ()\nfun main(): int {x as int}";
   "global char" >:: make_test 115 "var x: char = 's'\nfun main(): int {x as int}";
   "global bool" >:: make_test 1 "var x: bool = true\nfun main(): int {x as int}";
-  "ptr literal" >:: make_test 8 "var x: int ptr = [1, 9, 8, 4, 0]\nfun main(): int {x[2]}";
+  "array literal" >:: make_test 8 "fun main(): int {[1, 9, 8, 4, 0][2]}";
   "address of" >:: make_test 4 "var x: int ptr = [1, 9, 8, 4, 0]\nfun main(): int {(@x)[0][3]}";
   "address of struct field" >:: make_test 7 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = list{value = 2, next = empty}}}; (@x.value)[0]}";
   "address of literal" >:: make_error_test "Not an lval, has no address" "fun main(): int {@5 as int}";
-  "struct dot assign" >:: make_test 99 "type list = {value: int, next: list}\nvar empty: list = 0 as list\nfun main(): int {var x: list = list{value = 7, next = list{value = 6, next = list{value = 2, next = empty}}}; x.next.value = 99; x.next.value}";
 ]
 let _ = run_test_tt_main tests

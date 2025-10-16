@@ -10,7 +10,6 @@ fun main(): int {
 		print(int_to_str(nums[i]));
 		println("");
 		bst_insert(@tree, nums[i]);
-		// bst_free(tree);
 		i = i + 1
 	};
 	bst_print(tree, 0);
