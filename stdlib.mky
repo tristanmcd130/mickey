@@ -135,6 +135,7 @@ fun int_to_str(x: int): char ptr {
 fun heap_report(): unit {
 	var p: int ptr = heap_start;
 	var i: int = 0;
+	println("HEAP REPORT:\n");
 	while(p != 0 as int ptr) {
 		print(int_to_str(p as int));
 		print(": \nIn use: ");

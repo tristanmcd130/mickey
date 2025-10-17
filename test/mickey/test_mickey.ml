@@ -12,7 +12,7 @@ let run ?(read_callbacks = []) ?(write_callbacks = []) code =
   let ast = Stmt.SProgram [SImport "../../stdlib.mks"; ast] |> Preprocess.preprocess in
   let type_defs = Hashtbl.create 10 in
   let type_env = Env.create None [] in
-  let typed_ast = Annotate.annotate type_defs type_env ast in
+  let typed_ast = Type_check.annotate type_defs type_env ast in
   let program = Program.create () in
   let env = Env.create None [] in
   Compile.compile program type_defs env typed_ast;

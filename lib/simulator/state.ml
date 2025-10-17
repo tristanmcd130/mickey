@@ -104,7 +104,7 @@ let run state =
     ()
   done
 let debug state =
-  Printf.printf "Break at %03x\n" state.pc;
+  (* Printf.printf "Break at %03x\n" state.pc; *)
   let stack = Stack.create () in
   let debugging = ref true in
   let quit = ref false in

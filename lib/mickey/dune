@@ -5,5 +5,5 @@
 
 (library
  (name mickey)
- (modules lexer parser type exp stmt preprocess env annotate program compile)
+ (modules lexer parser type exp stmt preprocess env type_check program compile)
  (libraries common))
