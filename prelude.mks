@@ -1,3 +1,0 @@
-sig print(string): unit
-sig readchar(): int
-sig readline(string): unit

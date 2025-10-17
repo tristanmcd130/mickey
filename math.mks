@@ -1,2 +1,0 @@
-sig abs(int): int
-sig divide(int, int): int
